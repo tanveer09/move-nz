@@ -505,3 +505,110 @@ head(work_data, 100)
 
 ```
 
+
+
+```{r}
+
+```
+
+
+
+```{r}
+# EDA of Travel to Work data
+```
+
+
+```{r}
+# Merge the Education and Work datasets
+
+all_data <- bind_rows(edu_data, work_data)
+
+# basic sanity checks
+all_data %>% count(journey_type, census_year)
+all_data %>% count(census_year)
+all_data %>% summarise(missing_cat = sum(is.na(travel_category)), missing_count = sum(is.na(count)))
+```
+
+
+```{r}
+all_data %>%
+  filter(journey_type == "Education") %>%
+  group_by(census_year) %>%
+  summarise(
+    total_count = sum(count, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+```
+
+
+
+```{r}
+
+all_data %>%
+  filter(is.na(travel_category)) %>%
+  distinct(journey_type, mode) %>%
+  arrange(journey_type, mode)
+
+```
+
+## Create mode shares and percentage-point changes
+
+### National-level shares by journey type
+```{r}
+shares_nz <- all_data %>%
+  group_by(journey_type, census_year, travel_category) %>%
+  summarise(count = sum(count, na.rm = TRUE), .groups = "drop") %>%
+  group_by(journey_type, census_year) %>%
+  mutate(share = count / sum(count)) %>%
+  ungroup()
+
+shares_nz
+```
+
+### Percentage-point changes (2018 vs 2023)
+
+```{r}
+
+pp_change_nz <- shares_nz %>%
+  mutate(share_pct = 100 * share) %>%
+  pivot_wider(
+    id_cols     = c(journey_type, travel_category),
+    names_from  = census_year,
+    values_from = share_pct,
+    names_prefix = "y"
+  ) %>%
+  mutate(
+    y2018 = round(y2018, 2),
+    y2023 = round(y2023, 2),
+    pp_change_2018_2023 = round(y2023 - y2018, 2)
+  ) %>%
+  arrange(journey_type, travel_category)
+
+pp_change_nz
+
+
+
+```
+
+```{r}
+shares_nz %>%
+  count(journey_type, census_year, travel_category) %>%
+  filter(n > 1)
+
+```
+
+### Difference-in-differences (Education change minus Work change)
+
+This answers: “Did Education shift more/less than Work for each category?”
+```{r}
+
+did_nz <- pp_change_nz %>%
+  select(journey_type, travel_category, pp_change_2018_2023) %>%
+  pivot_wider(names_from = journey_type, values_from = pp_change_2018_2023) %>%
+  mutate(diff_in_diff_pp = Education - Work) %>%
+  arrange(travel_category)
+
+did_nz
+
+```
