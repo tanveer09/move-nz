@@ -1,0 +1,507 @@
+---
+title: "edu_vs_work"
+author: "Tanveer Singh"
+date: "2026-01-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(dplyr)
+library(tools)
+library(tidyr)
+#library(tidyverse)
+library(janitor)
+```
+
+## Load Education data files, merge and Calculate Another gender from Total
+```{r}
+merge_edu_data_files <- function(files_dir, output_file) {
+
+  library(dplyr)
+
+  files <- list.files(files_dir, pattern = "\\.csv$", full.names = TRUE)
+
+  final_data <- tibble()
+
+  for (file in files) {
+
+    file_name <- tools::file_path_sans_ext(basename(file))
+    parts <- strsplit(file_name, "_")[[1]]
+
+    region   <- parts[1]
+    district <- parts[2]
+
+    raw_data <- read.csv(file)
+
+    delete_columns <- c(
+      "STRUCTURE", "STRUCTURE_ID", "STRUCTURE_NAME", "ACTION",
+      "CEN23_YEAR_001", "Observation.Value", "OBS_STATUS", "Observation.Status"
+    )
+
+    clean_data <- raw_data %>%
+      select(-any_of(delete_columns)) %>%
+      mutate(
+        Region   = region,
+        District = district,
+        OBS_VALUE = coalesce(OBS_VALUE, 0)  # replace NA with 0
+      )
+
+    # 1) Summarise gender totals per group (handles missing genders + duplicates safely)
+    gender_sums <- clean_data %>%
+      group_by(Census.year, CEN23_GEO_002, CEN23_TED_002, CEN23_AGE_003) %>%
+      summarise(
+        male   = sum(OBS_VALUE[CEN23_GEN_002 == 1],  na.rm = TRUE),
+        female = sum(OBS_VALUE[CEN23_GEN_002 == 2],  na.rm = TRUE),
+        total  = sum(OBS_VALUE[CEN23_GEN_002 == 99], na.rm = TRUE),
+        .groups = "drop"
+      )
+
+    # 2) Join back and compute "Another" (gender 3), then remove total row (99)
+    clean_data_filled <- clean_data %>%
+      left_join(
+        gender_sums,
+        by = c("Census.year", "CEN23_GEO_002", "CEN23_TED_002", "CEN23_AGE_003")
+      ) %>%
+      mutate(
+        OBS_VALUE = if_else(
+          CEN23_GEN_002 == 3,
+          pmax(total - male - female, 0),
+          OBS_VALUE
+        )
+      ) %>%
+      select(-male, -female, -total) %>%
+      filter(CEN23_GEN_002 != 99)
+
+    # append the corrected data (NOT the original clean_data)
+    final_data <- bind_rows(final_data, clean_data_filled)
+  }
+
+  final_data_sorted <- final_data %>%
+    arrange(
+      Census.year,
+      CEN23_GEO_002,
+      CEN23_TED_002,
+      CEN23_AGE_003,
+      CEN23_GEN_002
+    )
+
+  write.csv(final_data_sorted, output_file, row.names = FALSE)
+
+  invisible(final_data_sorted)
+}
+
+```
+
+
+## Load Work data files, merge and Calculate Another gender from Total
+```{r}
+merge_work_data_files <- function(files_dir, output_file) {
+
+  library(dplyr)
+
+  files <- list.files(files_dir, pattern = "\\.csv$", full.names = TRUE)
+  final_data <- tibble()
+
+  for (file in files) {
+
+    file_name <- tools::file_path_sans_ext(basename(file))
+    parts <- strsplit(file_name, "_")[[1]]
+
+    region   <- parts[1]
+    district <- parts[2]
+
+    raw_data <- read.csv(file)
+
+    delete_columns <- c(
+      "STRUCTURE", "STRUCTURE_ID", "STRUCTURE_NAME", "ACTION",
+      "CEN23_YEAR_001", "CEN23_TOI_003", "Total.personal.income",
+      "Observation.Value", "OBS_STATUS"
+    )
+
+    clean_data <- raw_data %>%
+      select(-any_of(delete_columns)) %>%
+      mutate(
+        Region   = region,
+        District = district
+      )
+
+    gender_info <- clean_data %>%
+      group_by(Census.year, CEN23_GEO_002, CEN23_TWO_002, CEN23_AGE_008) %>%
+      summarise(
+        male_calc    = sum(coalesce(OBS_VALUE[CEN23_GEN_002 == 1],  0)),
+        female_calc  = sum(coalesce(OBS_VALUE[CEN23_GEN_002 == 2],  0)),
+        another_calc = sum(coalesce(OBS_VALUE[CEN23_GEN_002 == 3],  0)),
+        total_calc   = sum(coalesce(OBS_VALUE[CEN23_GEN_002 == 99], 0)),
+
+        male_conf_na = any(CEN23_GEN_002 == 1 & is.na(OBS_VALUE) & Observation.Status == "Confidential"),
+        female_conf_na = any(CEN23_GEN_002 == 2 & is.na(OBS_VALUE) & Observation.Status == "Confidential"),
+        .groups = "drop"
+      )
+
+    clean_data_filled <- clean_data %>%
+      left_join(
+        gender_info,
+        by = c("Census.year", "CEN23_GEO_002", "CEN23_TWO_002", "CEN23_AGE_008")
+      ) %>%
+      mutate(
+        OBS_VALUE = case_when(
+          CEN23_GEN_002 == 1 &
+            is.na(OBS_VALUE) &
+            Observation.Status == "Confidential" &
+            male_conf_na ~ pmax(total_calc - female_calc - another_calc, 0),
+
+          CEN23_GEN_002 == 2 &
+            !male_conf_na &
+            is.na(OBS_VALUE) &
+            Observation.Status == "Confidential" &
+            female_conf_na ~ pmax(total_calc - male_calc - another_calc, 0),
+
+          CEN23_GEN_002 == 3 &
+            !male_conf_na & !female_conf_na &
+            is.na(OBS_VALUE) ~ pmax(total_calc - male_calc - female_calc, 0),
+
+          TRUE ~ OBS_VALUE
+        )
+      ) %>%
+      select(
+        -male_calc, -female_calc, -another_calc,
+        -total_calc, -male_conf_na, -female_conf_na
+      )
+
+    final_data <- bind_rows(final_data, clean_data_filled)
+  }
+
+  # FINAL CLEANUP STEP (as requested)
+  final_data_sorted <- final_data %>%
+    filter(CEN23_GEN_002 != 99) %>%          # remove Total rows
+    select(-Observation.Status) %>%           # remove Observation.Status column
+    arrange(
+      Census.year,
+      CEN23_GEO_002,
+      CEN23_TWO_002,
+      CEN23_AGE_008,
+      CEN23_GEN_002
+    )
+
+  write.csv(final_data_sorted, output_file, row.names = FALSE)
+
+  invisible(final_data_sorted)
+}
+```
+
+
+## LOAD INDIVIDUAL EDUCATION DATA FILES AND GENERATE EDUCATION DATASET FILE
+```{r}
+merge_edu_data_files("./Edu_Data", "edu_data.csv")
+```
+
+## LOAD INDIVIDUAL WORK DATA FILES AND GENERATE WORK DATASET FILE
+```{r}
+merge_work_data_files("./Work_Data", "work_data.csv")
+```
+
+
+## LOAD EDUCTION DATASET
+```{r}
+# load the travel to education dataset
+edu_data <- read.csv("edu_data.csv")
+
+colnames(edu_data)
+
+str(edu_data)
+
+```
+
+
+## TRANSFORM EDUCATION DATASET
+```{r}
+### transform the travel to education dataset
+
+## 1. Rename columns
+edu_data <- edu_data %>%
+  rename(census_year = Census.year,
+         sa2_code = CEN23_GEO_002,
+         sa2 = Area,
+         mode_code = CEN23_TED_002,
+         mode = Main.means.of.travel.to.education,
+         age_group_code = CEN23_AGE_003,
+         age_group = Age,
+         gender_code = CEN23_GEN_002,
+         gender = Gender,
+         count = OBS_VALUE,
+         region = Region,
+         district = District
+         )
+
+colnames(edu_data)
+
+## 2. Add travel_category column, by categorising the travel modes into 5 types
+
+edu_data <- edu_data %>%
+  mutate(
+    travel_category = case_when(
+      mode %in% c(
+        "Passenger in a car, truck or van",
+        "Drive a car, truck or van"
+      ) ~ "Private Transport",
+
+      mode %in% c(
+        "Bicycle",
+        "Walk or jog"
+      ) ~ "Active Transport",
+
+      mode %in% c(
+        "Public bus",
+        "Train",
+        "Ferry",
+        "School bus"
+      ) ~ "Public Transport",
+
+      mode == "Study at home" ~ "At home",
+
+      mode == "Other" ~ "Other Transport",
+
+      TRUE ~ NA_character_
+    )
+  )
+
+unique(edu_data$gender)
+
+## 3. remove the Total - gender values as these are not needed
+edu_data <- edu_data %>%
+  filter(gender != "Total - gender")
+unique(edu_data$gender)
+
+
+## 4. replace the male femake and other values in gender column
+edu_data <- edu_data %>%
+  mutate(
+    gender = recode(gender,
+                    "Male / Tāne" = "Male",
+                    "Female / Wahine" = "Female",
+                    "Another gender / He ira kē anō" = "Other")
+  )
+unique(edu_data$gender)
+
+## 5. Add journey_type column to indicate it is Journey to Education rleated data
+edu_data$journey_type <- "Education"
+head(edu_data)
+
+## 6. Reoder the columns
+edu_data <- edu_data %>%
+  select(
+    journey_type,
+    census_year,
+    region,
+    district,
+    sa2_code,
+    sa2,
+    mode_code,
+    mode,
+    travel_category,
+    age_group_code,
+    age_group,
+    gender_code,
+    gender,     
+    count
+  )
+
+head(edu_data)
+
+## 7. Replace NA in student_count to 0
+
+edu_data <- edu_data %>%
+  mutate(
+    count = coalesce(count, 0)
+  )
+
+head(edu_data)
+
+# 8. Rename the age groups from '65 years and over' to 'Over 64 years'
+
+edu_data <- edu_data %>%
+  mutate(
+    age_group = recode(age_group,
+                    "65 years and over" = "Over 64 years")
+  )
+unique(edu_data$age_group)
+
+# 9. UTF-8 encoding on region values
+unique(edu_data$region)
+edu_data <- edu_data %>%
+  mutate(
+    region = recode(region,
+                    "Manawatū-Whanganui Region" = "Manawatu-Whanganui Regions",
+		     "Manawatū–Whanganui Region"  = "Manawatu-Whanganui Regions")
+  )
+
+unique(edu_data$region)
+
+head(edu_data, 100)
+
+
+```
+
+
+
+
+## LOAD WORK DATASET
+```{r}
+# load the travel to education dataset
+work_data <- read.csv("work_data.csv")
+
+work_cols <- colnames(work_data)
+
+work_cols
+
+str(work_data)
+
+```
+
+
+## TRANSFORM WORK DATASET
+```{r}
+# transform the travel to work dataset
+
+# 1. Rename columns
+work_data <- work_data %>%
+  rename(census_year = Census.year,
+         sa2_code = CEN23_GEO_002,
+         sa2 = Area,
+         mode_code = CEN23_TWO_002,
+         mode = Main.means.of.travel.to.work,
+         age_group_code = CEN23_AGE_008,
+         age_group = Age,
+         gender_code = CEN23_GEN_002,
+         gender = Gender,
+         count = OBS_VALUE,
+         region = Region,
+         district = District
+         )
+
+colnames(work_data)
+
+# 2. Add work travel_category column, by categorising the travel modes into 5 types
+
+work_data <- work_data %>%
+  mutate(
+    travel_category = case_when(
+      mode == "Work at home" ~ "At home",
+
+      mode %in% c(
+        "Drive a private car, truck or van",
+        "Drive a company car, truck or van",
+        "Passenger in a car, truck, van or company bus"
+      ) ~ "Private Transport",
+
+      mode %in% c(
+        "Public bus",
+        "Train",
+        "Ferry"
+      ) ~ "Public Transport",
+
+      mode %in% c(
+        "Bicycle",
+        "Walk or jog"
+      ) ~ "Active Transport",
+
+      mode %in% c(
+        "Did not go to work today",
+        "Other"
+      ) ~ "Other Transport",
+
+      TRUE ~ NA_character_
+    )
+  )
+
+unique(work_data$travel_category)
+
+# 3. remove the Total - gender values as these are not needed
+work_data <- work_data %>%
+  filter(gender != "Total - gender")
+unique(work_data$gender)
+
+
+# 4. replace the male femake and other values in gender column
+work_data <- work_data %>%
+  mutate(
+    gender = recode(gender,
+                    "Male / Tāne" = "Male",
+                    "Female / Wahine" = "Female",
+                    "Another gender / He ira kē anō" = "Other")
+  )
+unique(work_data$gender)
+
+# 5. Add journey_type column to indicate it is Journey to Education rleated data
+work_data$journey_type <- "Work"
+colnames(work_data)
+
+
+# 6. Reoder the columns
+work_data <- work_data %>%
+  select(
+    journey_type,
+    census_year,
+    region,
+    district,
+    sa2_code,
+    sa2,
+    mode_code,
+    mode,
+    travel_category,
+    age_group_code,
+    age_group,
+    gender_code,
+    gender,     
+    count
+  )
+
+head(work_data)
+
+# 6. Replace NA in employee_count to 0
+
+work_data <- work_data %>%
+  mutate(
+    count = coalesce(count, 0)
+  )
+
+head(work_data)
+
+# 7. Rename the age groups from '65 years and over' to 'Over 64 years'
+
+work_data <- work_data %>%
+  mutate(
+    age_group = recode(age_group,
+                    "65 years and over" = "Over 64 years")
+  )
+unique(work_data$age_group)
+
+# 8. UTF-8 encoding on region values
+unique(work_data$region)
+work_data <- work_data %>%
+  mutate(
+    region = recode(region,
+                    "Manawatū-Whanganui Region" = "Manawatu-Whanganui Regions",
+		     "Manawatū–Whanganui Region" = "Manawatu-Whanganui Regions")
+  )
+
+unique(work_data$region)
+
+head(work_data, 100)
+
+
+```
+
+### WRITE THE TRANSFORMED DATA BACK TO FILES
+```{r}
+# EDA of Travel to Education data
+#write.csv(edu_data, "edu_data_transformed.csv", row.names = FALSE)
+#write.csv(work_data, "work_data_transformed.csv", row.names = FALSE)
+
+```
+
