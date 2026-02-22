@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<style xmlns="http://purl.org/net/xbiblio/csl"
+       version="1.0"
+       class="in-text"
+       default-locale="en-US">
+
+  <info>
+    <title>APA 7th Edition</title>
+    <id>http://www.zotero.org/styles/apa</id>
+    <link href="http://www.zotero.org/styles/apa" rel="self"/>
+    <author>
+      <name>American Psychological Association</name>
+    </author>
+    <category citation-format="author-date"/>
+    <category field="psychology"/>
+    <updated>2020-10-01T12:00:00+00:00</updated>
+  </info>
+
+  <macro name="author">
+    <names variable="author" and="text">
+      <name initialize-with=". "
+            delimiter=", "
+            delimiter-precedes-last="always"/>
+      <et-al font-style="italic"/>
+      <substitute>
+        <names variable="editor"/>
+        <text variable="title"/>
+      </substitute>
+    </names>
+  </macro>
+
+
+  <macro name="issued-year">
+    <date variable="issued">
+      <date-part name="year"/>
+    </date>
+  </macro>
+
+  <citation et-al-min="2" et-al-use-first="1" disambiguate-add-year-suffix="true">
+    <layout prefix="(" suffix=")" delimiter="; ">
+      <group delimiter=", ">
+        <text macro="author"/>
+        <text macro="issued-year"/>
+      </group>
+    </layout>
+  </citation>
+
+
+  <bibliography hanging-indent="true" et-al-min="8" et-al-use-first="6" entry-spacing="1">
+    <sort>
+      <key macro="author"/>
+      <key macro="issued-year"/>
+    </sort>
+    <layout>
+      <group delimiter=". ">
+        <text macro="author"/>
+        <date variable="issued" prefix="(" suffix=")">
+          <date-part name="year"/>
+        </date>
+        <text variable="title"/>
+        <group delimiter=", ">
+          <text variable="container-title" font-style="italic"/>
+          <text variable="volume" font-style="italic"/>
+          <text variable="issue" prefix="(" suffix=")"/>
+          <text variable="page"/>
+        </group>
+        <text variable="DOI" prefix="https://doi.org/"/>
+      </group>
+    </layout>
+  </bibliography>
+
+</style>

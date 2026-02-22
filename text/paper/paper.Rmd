@@ -1,0 +1,3853 @@
+---
+  title: "Changes in Travel Behaviour to Education and Work in New Zealand:\\
+  A Comparative Analysis of Census 2018 and 2023 Data"
+  author: |
+    Tanveer Singh \
+    Victoria University of Wellington, New Zealand
+  date: "February 5, 2026"
+  output:
+    pdf_document:
+      latex_engine: xelatex
+      number_sections: true
+      toc: false
+  fontsize: 11pt
+  geometry: margin=1in
+  bibliography: ../../common/references.bib
+  csl: ../../common/apa.csl
+  citeproc: true
+  link-citations: true
+  header-includes:
+    - \usepackage{float}
+    - \usepackage{placeins}
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+options(pander.split.table = Inf)
+
+
+library(knitr)
+library(kableExtra)
+library(dplyr)
+library(tools)
+library(tidyr)
+library(nnet)
+library(janitor)
+library(rcompanion)
+library(pander)
+
+knit_print.data.frame <- function(x, ...) {
+
+  if (nrow(x) == 0) {
+    return(knitr::asis_output("\\textit{(No rows to display.)}"))
+  }
+
+  tab_tex <- knitr::kable(
+    x,
+    format    = "latex",
+    booktabs  = TRUE,
+    longtable = TRUE
+  ) %>%
+    kableExtra::kable_styling(
+      latex_options = c("repeat_header", "hold_position"),
+      font_size = 9
+    )
+
+  knitr::asis_output(as.character(tab_tex))
+}
+
+knit_print.tbl_df <- knit_print.data.frame
+```
+
+\begin{abstract}
+
+The COVID-19 pandemic has significantly disrupted daily travel behaviour, raising questions about the persistence of changes in travel to education and work. This study examines how travel-mode distributions for these two journey purposes changed in New Zealand between the 2018 and 2023 population censuses, using nationally aggregated data released by Statistics New Zealand. Journey to Education and Journey to Work datasets are harmonised and analysed using consistent travel-mode groupings, enabling direct comparison across time and journey type.
+
+The analysis combines descriptive statistics, percentage-point change measures, difference-in-differences comparisons, chi-square tests of homogeneity, and multinomial logistic regression with interaction terms. Results show statistically significant changes in travel-mode distributions over time for both education and work journeys, with large increases in study from home and sustained declines in public transport. Formal statistical tests provide evidence that the magnitude and direction of these changes differ between education and work travel.
+
+Further analysis reveals substantial regional variation, with urban areas experiencing larger shifts than non-urban regions. By integrating population-scale census data with formal statistical inference, this study provides new national-level evidence on post-COVID travel behaviour in New Zealand, with particular emphasis on education travel, which has received limited attention in existing research. The findings have direct implications for transport planning and post-pandemic policy development.
+\end{abstract}
+
+
+# Introduction & Motivation
+
+Understanding how people travel to education and work is central to transport planning and public policy, as these journeys account for a substantial share of daily travel demand and strongly influence peak-period congestion, infrastructure investment, environmental outcomes, and social equity. In New Zealand, population-level travel behaviour is most comprehensively captured through the national census, which provides consistent, spatially detailed information on individuals’ main means of travel across regions, districts, and neighbourhood-scale statistical areas. As such, census data play a critical role in informing long-term transport strategies and monitoring structural changes in travel behaviour over time.
+
+The 2018 and 2023 census waves are of particular analytical significance because they bracket the COVID-19 pandemic, a period that fundamentally disrupted everyday mobility patterns. Lockdowns, school closures, remote learning, and the rapid adoption of working and studying from home altered not only the volume of travel but also the relative attractiveness and feasibility of different travel modes. While early pandemic impacts were widely documented, there remains considerable uncertainty regarding the extent to which these changes represent temporary shocks versus persistent structural shifts in travel behaviour, especially in a post-pandemic context where hybrid arrangements have become increasingly normalised.
+
+Most empirical research on post-COVID travel behaviour has focused on journeys to work, reflecting their historical dominance in transport modelling and policy evaluation. However, travel to education represents a distinct and substantial component of daily travel demand, involving different age groups, household decision-making processes, and institutional constraints. In New Zealand, Journey to Education data are only available for the 2018 and 2023 censuses, making this the first opportunity to conduct a national, pre- and post-COVID comparison of education-related travel behaviour using consistent population-scale data. Treating education travel as analytically equivalent to work travel—rather than as a subset or proxy—allows for a more complete understanding of how different segments of the transport system have adapted to post-pandemic conditions.
+
+Preliminary descriptive evidence suggests that travel behaviour changes since 2018 have not been uniform across journey purposes or regions. Study from home has increased markedly, particularly for education, while public transport has experienced sustained declines that vary by urbanisation level and geographic context. At the same time, private transport continues to dominate in-person travel, and changes in active transport appear uneven across cities and regions. These patterns raise important questions for transport policy, including whether post-COVID travel behaviour is converging toward more sustainable outcomes or reinforcing existing car dependence, and whether education and work travel are evolving along similar or divergent trajectories.
+
+This research builds directly on prior internship work undertaken with the New Zealand Transport Agency (NZTA), where Census 2018 and 2023 Journey to Education data were analysed and presented through an interactive Power BI dashboard. That work highlighted clear national and regional shifts in travel-mode shares but was primarily descriptive in nature. The present study extends this foundation by integrating Journey to Education and Journey to Work data within a unified analytical framework and applying formal statistical methods to assess whether observed differences over time and between journey purposes are statistically meaningful rather than visually apparent alone.
+
+The primary aim of this study is to systematically examine how travel-mode distributions for education and work journeys in New Zealand changed between 2018 and 2023, and whether these changes differ in magnitude, direction, and spatial pattern. Specifically, the research addresses three overarching objectives. First, it quantifies and visualises changes in travel-mode shares at national, regional, and city levels, using harmonised travel-mode categories to ensure comparability across datasets. Second, it evaluates whether education and work travel exhibit statistically different patterns of change over time, employing percentage-point change metrics, difference-in-differences comparisons, and tests of homogeneity on multinomial distributions. Third, it explores spatial heterogeneity by comparing urban and non-urban regions and identifying regions and demographic groups that contribute most strongly to observed changes.
+
+By combining population-scale census data with formal statistical inference and complementary visual analytics, this study provides robust national-level evidence on post-COVID travel behaviour in New Zealand. In doing so, it addresses a notable gap in the literature regarding education travel and offers policy-relevant insights for transport planning, demand management, and infrastructure investment in a post-pandemic environment.
+
+
+## Background and Literature Review
+
+### Travel behaviour change as a long-standing research domain
+
+Research on travel behaviour has historically concentrated on explaining mode choice for routine journeys, particularly journeys to work, reflecting their importance for peak-period congestion, infrastructure provision, and labour market accessibility. This body of literature has primarily employed household travel surveys, census data, and stated or revealed preference models to examine how socio-demographic characteristics, land use patterns, and transport infrastructure shape travel decisions [@Heinen2015]. Across this work, a consistent finding is that travel behaviour is strongly structured by spatial context, daily activity constraints, and the availability of viable transport alternatives.
+
+Within this body of work, journeys to work have received disproportionate attention relative to journeys to education, despite education travel representing a substantial share of peak-period demand and involving populations with distinct constraints and decision processes. Studies focusing on school travel demonstrate that distance, settlement type, parental perceptions, and transport infrastructure strongly influence mode choice, often producing different patterns from adult commuting [@MANDIC2023101585; @YAN2019SchoolTravel]. This asymmetry in the literature is important, as it limits understanding of how system-wide shocks--such as the COVID-19 pandemic--may affect education and work travel differently.
+
+
+### COVID-19 as a natural experiment in travel behaviour change
+
+The COVID-19 pandemic represents an unprecedented disruption to daily mobility, effectively functioning as a global natural experiment in travel behaviour change. A rapidly growing literature documents dramatic declines in overall travel demand during lockdown periods, alongside sharp shifts in mode shares away from public transport and towards private vehicles, active modes, and remote participation [@CURRIE2021218; @PAWLUKDETOLEDO2024115]. Unlike incremental infrastructure or policy interventions, the pandemic simultaneously altered perceived risk, institutional arrangements, and technological feasibility, particularly through the widespread adoption of working and studying from home.
+
+Research consistently shows that working from home (WFH) became a central driver of reduced commuting demand during the pandemic and is likely to persist in hybrid form post-pandemic [@HENSHER2022179; @HUANG2023202]. [@CURRIE2021218], for example, found strong stated intentions to continue remote work in Melbourne, implying long-term structural changes in peak-period travel rather than a temporary shock. Similar conclusions emerge from international contexts, suggesting that COVID-induced behavioural changes are not geographically isolated but reflect broader systemic shifts [@HAMAD2024101008].
+
+Importantly, the pandemic did not affect all modes equally. Public transport experienced the most severe and prolonged decline, driven by infection risk perceptions, service reductions, and the erosion of habitual commuting patterns [@BUEHLER2025104549; @HOSSAIN2024AucklandPT]. In contrast, private vehicle use rebounded more quickly, while active transport increased in many urban areas, particularly during periods of restricted movement [@PAWLUKDETOLEDO2024115]. These asymmetric effects raise critical questions about whether post-pandemic transport systems are converging toward more sustainable trajectories or settle on car dependence.
+
+
+### Education travel and differential impacts of the pandemic
+
+While much COVID-related travel research has focused on adult workers, a smaller but growing body of literature examines travel to school and education, revealing both parallels and important divergences. [@MANDIC2023101585] show that school travel mode choice in New Zealand varies strongly by settlement type and home-to-school distance, with active travel far more prevalent in compact urban settings than in rural or low-density areas. These spatial gradients imply that pandemic-related disruptions may manifest differently across regions and urbanisation levels.
+
+Further evidence suggests that the pandemic altered not only observed school travel behaviour but also perceptions and norms around active modes. [@MANDIC2024101803] found changes in adolescents’ attitudes toward walking to school during COVID-19, reflecting heightened parental concerns and altered daily routines. These findings suggest that behavioural responses to COVID-19 in education contexts may be mediated through family decision-making processes, school policies, and local infrastructure in ways that differ fundamentally from adult commuting.
+
+Comparative studies outside New Zealand reinforce this point. [@YAN2019SchoolTravel] demonstrate that institutional context--such as public versus private schooling--can produce systematic differences in travel behaviour, even within the same metropolitan region. Taken together, this literature highlights the importance of treating education travel as analytically distinct rather than assuming that findings from journey-to-work studies generalise automatically.
+
+
+## Persistence, recovery, and regional variation in post-COVID travel
+
+A key unresolved question in the literature concerns the persistence of pandemic-induced travel behaviour changes. While early studies relied heavily on stated intentions, more recent work incorporates longer post-pandemic observation windows, revealing partial but uneven recovery patterns. [@BUEHLER2025104549], in a multi-country comparative analysis, show that public transport ridership in Australia recovered to around 90% of pre-pandemic levels by 2024, but with substantial variation across cities, modes, and days of the week. This suggests that aggregate recovery masks important structural changes in travel timing and purpose.
+
+Qualitative and mixed-methods studies further emphasise that post-COVID travel behaviour is unlikely to revert fully to pre-pandemic norms. [@PAWLUKDETOLEDO2024115] argue that changes in travel behaviour are embedded within broader lifestyle adjustments, including altered activity patterns, residential preferences, and expectations of flexibility. From this perspective, COVID-19 represents not merely a temporary shock but a catalyst accelerating longer-term trends such as remote participation and decentralisation.
+
+Despite these advances, most existing studies remain city-specific, survey-based, or focused on single trip purposes. There is comparatively little work using population-scale administrative data to quantify changes consistently across regions and over time, particularly in the education context. This gap is especially evident in New Zealand, where census data provide rare national coverage but have been underutilised for post-COVID comparative analysis.
+
+
+## Methodological approaches and relevance to the present study
+
+Methodologically, prior research on travel behaviour change employs a diverse toolkit, including multinomial logit models, quasi-experimental designs, and before-after comparisons [@Heinen2015; @HENSHER2022179]. Many studies explicitly model changes in mode share, recognising that shifts in relative proportions often provide more policy-relevant insight than absolute trip counts alone. Multinomial and distribution-based approaches are particularly well suited to analysing categorical mode choice outcomes where substitution effects between modes are central.
+
+The present study builds on this tradition by adopting a comparative distributional framework, using census counts and proportions to assess how mode shares changed between 2018 and 2023. This approach is consistent with prior work that treats large-scale disruptions--such as infrastructure interventions or pandemics--as natural experiments, where the primary interest lies in system-level redistribution rather than individual causal attribution [@Heinen2015].
+
+In contrast to much of the COVID-19 literature, which relies on self-reported surveys, this research leverages official census data covering approximately 580,000 records across all New Zealand regions and statistical areas. This enables robust comparison across urban and non-urban contexts, addressing calls in the literature for greater attention to spatial heterogeneity [@MANDIC2023101585; @BUEHLER2025104549]. The planned use of multinomial distribution tests to compare journey-to-education and journey-to-work patterns directly responds to the observed imbalance in prior research emphasis.
+
+Visual analytic techniques, such as Sankey diagrams, further complement the quantitative analysis by illustrating the redistribution of mode shares over time, an approach increasingly recognised as valuable for communicating complex behavioural shifts to policy audiences [@PAWLUKDETOLEDO2024115]. Together, these methods position the study at the intersection of descriptive, inferential, and policy-relevant transport research.
+
+
+### Contribution of the current research
+
+In summary, existing literature clearly demonstrates that COVID-19 has reshaped travel behaviour across multiple dimensions, with persistent implications for mode choice, public transport viability, and regional equity. However, important gaps remain regarding education travel, national-scale evidence, and direct comparison between work and education journeys. By analysing Census 2018 and 2023 data within a unified framework, this research contributes novel empirical evidence to these debates, grounding post-COVID travel behaviour analysis in comprehensive population data rather than stated preferences alone.
+
+By explicitly comparing journey-to-education and journey-to-work outcomes, and by situating these within urban–non-urban contexts, the study extends existing findings and provides policy-relevant insight into how different segments of the transport system have adapted--or failed to adapt--in the post-pandemic period.
+
+
+
+# Methodology
+```{r load-edu-work-data-early, include=FALSE, ref.label="edu-work-load-merged-data"}
+```
+
+## Data collection, preparation, and governance
+
+This study employs a structured, reproducible data pipeline to examine changes in travel behaviour to education and work across New Zealand using national Census data. The methodology was designed to ensure aggregation safety, cross-dataset comparability, and compliance with confidentiality, privacy, and Māori data governance requirements. All data processing steps were applied exclusively to published, aggregated Census counts and are fully documented to support transparency and reproducibility.
+
+
+
+### Data sources and datasets
+
+The analysis draws on publicly available, aggregated Census data released by Statistics New Zealand (Stats NZ) through the Census Transport data catalogue. Two datasets were selected to represent the primary journey purposes of interest:
+
+* **Main means of travel to education, age, and gender for the census usually resident population who are studying (2018 and 2023 Censuses)**
+* **Main means of travel to work, total personal income, age, and gender for the employed census usually resident population aged 15 years and over (2018 and 2023 Censuses)**
+
+The education dataset represents the census usually resident population who reported studying, while the work dataset represents the employed usually resident population aged 15 years and over. Both datasets provide aggregated counts disaggregated by travel mode, age group, gender, Census year, and geographic unit.
+
+Data are available at multiple spatial resolutions. This study adopts **Statistical Area 2 (SA2)** as the primary unit of analysis, as SA2s are designed to represent stable local communities of approximately 2,000–4,000 residents and provide a consistent sub-regional spatial framework across census waves. Regional council and territorial authority identifiers were retained to support higher-level aggregation and regional comparison.
+
+All datasets consist exclusively of aggregated population counts. No unit-record or individual-level data were accessed.
+
+
+
+### Data access and download procedure
+
+Data were accessed via the Stats NZ online data explorer under the Census *Transport* category. For each journey type—Journey to Education and Journey to Work—data for the **2018 and 2023 Census waves were downloaded simultaneously** to ensure consistent table structure and metadata alignment across years.
+
+Data were extracted at the SA2 level using the option *“Total – New Zealand by territorial authority and Auckland local board/SA2”*. For each territorial authority or city, all associated SA2 units were selected and downloaded as separate CSV files. This approach preserved the full national spatial coverage while allowing scalable ingestion and processing.
+
+Downloaded files were named using a consistent `<Region>_<District>` convention. Region and district identifiers were subsequently parsed from file names and added explicitly as variables during ingestion, ensuring traceability between source files and processed records.
+
+The Journey to Education dataset was downloaded in **November 2025**, and the Journey to Work dataset in **January 2026**. These access dates are reported to support reproducibility, acknowledging that classifications and metadata may evolve over time.
+
+
+
+### Download filters and selection criteria
+
+Careful filter selection was applied during data extraction to ensure that all counts were **mutually exclusive, aggregation-safe, and analytically meaningful**. In particular, total and residual categories that would generate duplicate rows or inflate counts during aggregation were systematically excluded.
+
+#### Journey to Education dataset
+
+For the Journey to Education dataset:
+
+* Under **Age**, the categories *“Total – age”* and *“Median – age”* were excluded. Broad age-group categories relevant to education participation were retained, while fine-grained sub-groups were excluded to avoid unnecessary fragmentation.
+* Under **Main means of travel to education**, the categories *“Total – main means of travel to education”*, *“Total stated – main means of travel to education”*, and *“Not elsewhere included”* were excluded.
+* Under **Gender**, the category *“Total – gender”* was retained alongside disaggregated gender categories to enable reconstruction of suppressed values during data preparation.
+
+#### Journey to Work dataset
+
+For the Journey to Work dataset:
+
+* Under **Census year**, the 2013 Census was excluded; only the 2018 and 2023 waves were retained.
+* Under **Total personal income**, only the aggregate *“Total – total personal income”* category was selected, with all income sub-categories excluded, as income was not used in subsequent analyses.
+* Under **Age**, the categories *“Total – age”* and *“Median – age”* were excluded.
+* Under **Main means of travel to work**, the categories *“Total – main means of travel”*, *“Total stated – main means of travel”*, and *“Not elsewhere included”* were excluded.
+* Under **Gender**, the *“Total – gender”* category was retained to support reconstruction of suppressed gender values.
+
+Across both datasets, total-level filter options were excluded wherever they would introduce duplicated aggregates. This ensured that summing across categories reproduced published totals exactly and avoided artificial inflation of counts.
+
+
+
+### Data ingestion, preparation, and harmonisation
+
+As the Census transport tables are released exclusively as **aggregated counts** and are subject to confidentiality protections, data preparation focused on ensuring structural comparability, aggregation validity, and consistent categorisation across datasets and Census waves. The preparation process was designed to preserve the integrity of published totals while enabling robust descriptive and inferential analysis at fine geographic resolution.
+
+Across both Journey to Education and Journey to Work datasets, preparation followed a consistent sequence: consolidation of regional extracts, controlled reconstruction of suppressed values, transformation into a harmonised analytical structure, and verification of aggregation safety prior to analysis. All operations were applied deterministically to published aggregate data, and no statistical imputation or model-based estimation was performed.
+
+
+#### Consolidation of regional Census extracts
+
+Both datasets were provided as multiple Census extracts, each corresponding to a specific Region–District selection. These files were consolidated into single national datasets to support systematic analysis. During consolidation, region and district identifiers were retained explicitly for every observation, ensuring that all records remained traceable to their original geographic context and enabling transparent aggregation at multiple spatial scales.
+
+Non-analytical structural metadata included in the Census dissemination tables were removed to retain only the variables required for analysis, namely Census year, geographic identifiers, travel mode, age group, gender category, and population count. This ensured a consistent and minimal schema across all records.
+
+Where structurally valid category combinations contained no recorded observations, counts were encoded as zero. This treatment reflects the interpretation that absence of recorded counts within a published category represents zero contribution rather than missing information, and it ensures numerical stability in subsequent aggregation and contingency-table construction.
+
+
+#### Handling of confidentiality and reconstruction of gender counts
+
+Statistics New Zealand applies confidentiality protection to Census tables through suppression and controlled perturbation, which can result in missing values at detailed disaggregation levels. In both datasets, a published **Total-gender** category is available within each Census grouping. This total was used as a constraint to reconstruct suppressed gender values where necessary, while preserving all published values.
+
+For the Journey to Education dataset, suppressed values in the “Another gender” category were reconstructed using the identity:
+
+$\text{Another} = \text{Total} - \text{Male} - \text{Female},$
+
+applied within internally consistent groupings defined by Census year, SA2, travel mode, and age group. Reconstructed values were constrained to be non-negative to avoid artefacts arising from rounding or suppression. Following reconstruction, all Total-gender rows were removed to prevent duplication during aggregation.
+
+The Journey to Work dataset required a more selective approach, as confidentiality suppression may apply to specific gender categories while others remain published. Reconstruction was therefore restricted to the suppressed category only, using the published total and the remaining observed gender counts as constraints. Published values were retained unchanged wherever they were available. As with the education data, Total-gender rows were removed once reconstruction was complete.
+
+This targeted strategy ensures internal consistency with published totals while avoiding distortion of valid, released counts. Importantly, reconstruction was purely arithmetic and deterministic, relying solely on information already present in the Census tables.
+
+
+#### Harmonisation of analytical structure
+
+Following consolidation and confidentiality handling, both datasets were transformed into a common analytical structure to enable direct comparison between education and work journeys.
+
+Variable names and labels were standardised across datasets, and age-group and gender labels were harmonised to ensure consistency. Geographic labels were normalised to resolve encoding inconsistencies that could otherwise generate artificial duplication of regions during aggregation.
+
+Detailed travel-mode categories differ slightly between education and work Census tables. To establish a stable and policy-relevant basis for comparison, all modes were recoded into five harmonised categories used consistently throughout the analysis:
+
+* **Private Transport**
+* **Public Transport**
+* **Active Transport**
+* **At Home**
+* **Other Transport**
+
+This categorisation preserves the key behavioural distinctions relevant to transport policy while ensuring that education and work journeys are directly comparable across Census years.
+
+Any remaining structurally valid but unobserved category combinations were encoded as zero counts. This ensures that later aggregation, proportion calculations, and inferential tests operate on complete and coherent contingency structures. This differs from confidentiality suppression, which is flagged and reconstructed using totals.
+
+A journey-type indicator was added to distinguish education from work journeys, enabling pooled analysis and interaction-based comparisons in later stages.
+
+
+#### Final integration and validation
+
+The harmonised education and work datasets were combined into a single analytical dataset with a shared schema. Prior to analysis, validation checks confirmed consistency of variable structure, complete coverage across journey types and Census years, and absence of missing values in key analytical fields such as travel category and population count.
+
+These checks provide assurance that observed differences in travel behaviour identified in subsequent sections reflect genuine differences in Census-reported distributions rather than artefacts introduced during data preparation.
+
+The table below verifies that each harmonised travel category is present for both education and work journeys in the 2018 and 2023 Censuses, confirming structural consistency of the merged dataset.
+
+```{r include=TRUE, ref.label="record-counts-by-journey-type-travel-category"}
+```
+
+### Ethics, privacy, and Māori data considerations
+
+This study uses secondary data that are publicly released by Stats NZ in aggregated, anonymised form. All data were provided in accordance with the *Data and Statistics Act 2022* and the *Privacy Act 2020*, with confidentiality protection applied by Stats NZ prior to release. No personal, identifiable, or unit-record data were accessed, and re-identification of individuals is not possible.
+
+As the analysis is based solely on aggregated Census counts, formal human ethics approval was not required.
+
+The datasets include population counts for Māori and non-Māori individuals as part of the national Census. In line with Stats NZ guidance and the principles of the *Māori Data Governance Model*, Māori data are analysed only in their published aggregate form. No inference is made at the level of individuals, whānau, hapū, or iwi, and no Māori-specific classifications are altered or redefined.
+
+Gender categories were originally provided using bilingual English–te reo Māori labels. For analytical clarity and consistency across datasets, these labels were standardised during preparation. This involved label harmonisation only and did not alter underlying published counts.
+
+
+
+## Data Analysis - Analytical Methods and Statistical Framework
+
+This section outlines the quantitative framework used to evaluate national-level changes in travel behaviour between the 2018 and 2023 Censuses, and to compare the evolution of Journey to Education and Journey to Work over time. The analytical approach proceeds in three stages:
+
+1. Estimation of national travel mode composition
+2. Measurement of percentage-point change between Census waves
+3. Difference-in-differences comparison between journey types
+
+All measures are derived from aggregated Census counts and represent population-level quantities.
+
+
+### National-Level Travel Mode Composition
+
+To examine how travel behaviour is distributed across transport categories, national-level mode shares are first calculated separately for education and work journeys. Because the Census provides counts at the SA2 level, national totals are obtained by summing across all SA2 units. These totals are exact population counts and do not involve sampling or estimation.
+
+Let
+
+$$
+N_{j,y,c}
+$$
+denote the total number of individuals for journey type
+
+$j \in \{ \text{Education}, \text{Work} \}$,
+
+census year 
+
+$y \in \{2018, 2023\}$,
+
+and travel category 
+
+$c \in \{\text{Private Transport}, \text{Public Transport}, \text{Active Transport}, \text{At Home}, \text{Other Transport}\}$.
+
+The total number of journeys for journey type $j$ in census year $y$ is defined as:
+
+$$N_{j,y} = \sum_{c} N_{j,y,c}$$
+
+The national-level **mode share** for category $c$ is then given by:
+
+$$S_{j,y,c} = \frac{N_{j,y,c}}{N_{j,y}}$$
+
+Mode shares are expressed as percentages for interpretability. These shares describe the composition of travel behaviour within each journey type and Census year, allowing direct comparison of distributional structure across 2018 and 2023.
+
+By working with proportions rather than raw counts, differences in overall population size between education and work groups do not distort comparisons of behavioural composition.
+
+
+### Percentage-Point Change Between 2018 and 2023
+
+To quantify temporal change within each journey type, percentage-point differences in mode shares are calculated between the two Census waves. Percentage-point change is preferred over relative percentage change because mode shares represent proportions of a total distribution. The percentage-point metric therefore directly captures structural shifts in composition.
+
+For each journey type $j$ and travel category $c$, the change between 2018 and 2023 is defined as:
+
+$$\Delta_{j,c} = S_{j,2023,c} - S_{j,2018,c}$$
+
+A positive value of $\Delta_{j,c}$ indicates that the share of category $c$ increased between 2018 and 2023, while a negative value indicates a decline.
+
+This measure allows identification of:
+
+* growth in “At Home” participation,
+* increases or decreases in private vehicle use,
+* recovery or contraction in public transport usage,
+* shifts toward or away from active transport.
+
+Because the calculation is based on national population totals, the resulting changes represent actual distributional shifts in reported Census behaviour.
+
+
+### Difference-in-Differences: Education versus Work
+
+While percentage-point change measures temporal shifts within each journey type, it does not directly quantify whether education and work evolved differently over time. To isolate this comparative effect, a difference-in-differences (DiD) measure is constructed at the travel-category level.
+
+For each travel category $c$, the DiD estimator is defined as:
+
+$$\text{DiD}_c = \left( S_{\text{Education},2023,c} - S_{\text{Education},2018,c} \right) - \left( S_{\text{Work},2023,c} - S_{\text{Work},2018,c} \right)$$
+
+Equivalently,
+
+$$\text{DiD}_c =  \Delta_{\text{Education},c} - \Delta_{\text{Work},c}$$
+
+This statistic measures whether the change observed in education travel differs systematically from the change observed in work travel for the same category.
+
+Interpretation:
+
+* $\text{DiD}_c > 0$: Education experienced a larger increase (or smaller decline) than work in category $c$.
+* $\text{DiD}_c < 0$: Work experienced a larger increase (or smaller decline) than education.
+* $\text{DiD}_c = 0$: Both journey types changed by the same magnitude.
+
+Because the analysis is based on full-population Census counts, these estimates describe structural population-level differences rather than sample-based approximations. Inferential testing of distributional differences is introduced in the following section.
+
+
+
+### Analytical Rationale
+
+The combined use of national mode shares, percentage-point change, and difference-in-differences provides a structured decomposition of behavioural change:
+
+* Mode shares describe composition at a fixed point in time.
+* Percentage-point differences measure within-journey temporal shifts.
+* Difference-in-differences isolates comparative evolution between education and work.
+
+Together, these measures ensure that comparisons reflect **structural redistribution across transport categories**, rather than changes driven by overall population growth or variation in total journey counts.
+
+
+## Statistical Inference: Tests of Homogeneity and Distributional Change
+
+While the descriptive measures in Section 2.2 quantify changes in travel-mode composition, formal statistical testing is required to determine whether observed differences represent meaningful distributional divergence. To evaluate homogeneity of categorical travel-mode distributions across time and journey types, Pearson’s Chi-square test is employed.
+
+The Chi-square test of homogeneity is appropriate when comparing whether two or more independent populations share the same categorical distribution. In this study, travel categories are mutually exclusive and collectively exhaustive, and Census counts provide observed frequencies for each category.
+
+
+### Statistical Framework
+
+To compare travel-mode distributions, contingency tables are constructed where rows represent comparison groups and columns represent travel categories. The comparison groups vary depending on the hypothesis being tested (e.g., 2018 vs 2023 within Education, or Education vs Work within 2018).
+
+Within this framework, let
+
+$$O_{g,c}$$
+
+denote the observed Census count for group $g$ and travel category $c$, where group $g$ may represent:
+
+* a Census year within a fixed journey type, or
+* a journey type within a fixed Census year.
+
+The Chi-square test evaluates whether deviations between observed and expected counts exceed what would be anticipated under the assumption of identical distributions across groups.
+
+Under the null hypothesis of homogeneity, the expected count in each cell of the contingency table is given by:
+
+$$E_{g,c} = \frac{R_g \, C_c}{N}$$
+
+where:
+
+* $R_g$ is the total count for group $g$,
+* $C_c$ is the total count for category $c$,
+* $N$ is the grand total across all groups and categories.
+
+The Pearson Chi-square test statistic is then defined as:
+
+$$\chi^2 = \sum_{g} \sum_{c} \frac{(O_{g,c} - E_{g,c})^2}{E_{g,c}}$$
+
+Under the null hypothesis, and subject to standard regularity conditions, this statistic follows a Chi-square distribution with
+
+$$df = (G - 1)(C - 1)$$
+
+degrees of freedom, where $G$ is the number of groups and $C$ is the number of travel categories.
+
+
+### Assumptions and Adequacy of the Chi-square Test
+
+Before applying the test, it is necessary to verify that its underlying assumptions are appropriate for the structure of the aggregated Census data.
+
+First, travel categories are mutually exclusive and collectively exhaustive within each contingency table. Each Census response contributes to exactly one main travel category, and the resulting counts therefore form a valid categorical frequency distribution within each group.
+
+Second, the analysis is conducted using aggregated count vectors defined by group (e.g., Census year within a fixed journey type, or journey type within a fixed Census year). For each group, the vector of category counts can be treated as arising from a multinomial allocation across the five travel categories, conditional on the group total. The groups being compared represent distinct population partitions defined by Census classification. The Chi-square test therefore evaluates whether these group-specific categorical distributions differ from one another.
+
+Third, the validity of the Chi-square approximation requires that expected cell counts are not excessively small. Given that national-level Census totals are used and the number of travel categories is limited to five harmonised groups, expected frequencies in all cells are substantial. There is no reason to doubt the adequacy of the asymptotic approximation in this context.
+
+Although the Census represents a full-population enumeration rather than a sample survey, the Chi-square framework remains appropriate as a distributional comparison tool. In this setting, the test quantifies the degree to which observed travel-mode distributions differ across defined population groups.
+
+
+### Time-Based Homogeneity Within Journey Types
+
+The first set of inferential comparisons evaluates whether travel-mode distributions changed between 2018 and 2023 within each journey type.
+
+#### Education: 2018 vs 2023
+
+To determine whether the composition of education-related travel changed over time, the distribution of travel categories in 2018 is compared to that of 2023.
+
+Let
+
+$$
+\mathbf{p}_{\text{Education},y} 
+= 
+\left(S_{\text{Education},y,1},
+\ldots,S_{\text{Education},y,C}\right)
+$$
+
+denote the vector of travel-mode proportions for Education in Census year $y$.
+
+The hypotheses are:
+
+$$
+H_0:
+\mathbf{p}_{\text{Education},2018}
+=
+\mathbf{p}_{\text{Education},2023}
+$$
+
+$$
+H_A:
+\mathbf{p}_{\text{Education},2018}
+\neq
+\mathbf{p}_{\text{Education},2023}
+$$
+
+This test evaluates whether education travel-mode composition remained stable across Census waves.
+
+
+#### Work: 2018 vs 2023
+
+An analogous comparison is conducted for work journeys.
+
+Let
+
+$$
+\mathbf{p}_{\text{Work},y}
+$$
+
+denote the travel-mode proportion vector for Work in year $y$.
+
+The hypotheses are:
+
+$$
+H_0:
+\mathbf{p}_{\text{Work},2018}
+=
+\mathbf{p}_{\text{Work},2023}
+$$
+
+$$
+H_A:
+\mathbf{p}_{\text{Work},2018}
+\neq
+\mathbf{p}_{\text{Work},2023}
+$$
+
+This assesses whether work-related travel patterns shifted between Census waves.
+
+
+
+### Cross-Journey Comparisons Within Census Years
+
+The second set of tests compares education and work travel-mode distributions within a fixed Census year.
+
+#### Education vs Work in 2018
+
+Within 2018, the null hypothesis of homogeneity across journey types is:
+
+$$
+H_0:
+\mathbf{p}_{\text{Education},2018}
+=
+\mathbf{p}_{\text{Work},2018}
+$$
+
+$$
+H_A:
+\mathbf{p}_{\text{Education},2018}
+\neq
+\mathbf{p}_{\text{Work},2018}
+$$
+
+This evaluates whether students and workers exhibited identical travel-mode distributions in 2018.
+
+
+#### Education vs Work in 2023
+
+Similarly, for 2023:
+
+$$
+H_0:
+\mathbf{p}_{\text{Education},2023}
+=
+\mathbf{p}_{\text{Work},2023}
+$$
+
+$$
+H_A:
+\mathbf{p}_{\text{Education},2023}
+\neq
+\mathbf{p}_{\text{Work},2023}
+$$
+
+This determines whether cross-journey differences persisted or emerged in 2023.
+
+
+### Differential Change Between Journey Types
+
+Beyond testing homogeneity at fixed points in time, it is important to assess whether the *magnitude of change* between 2018 and 2023 differs between education and work journeys.
+
+Conceptually, this corresponds to testing for an interaction between journey type and Census year in determining travel-mode distribution.
+
+The null hypothesis states that the distributional change over time is identical for both journey types:
+
+$$
+H_0:
+\left(
+\mathbf{p}_{\text{Education},2023}
+-
+\mathbf{p}_{\text{Education},2018}
+\right)
+=
+\left(
+\mathbf{p}_{\text{Work},2023}
+-
+\mathbf{p}_{\text{Work},2018}
+\right)
+$$
+
+The alternative hypothesis is:
+
+$$
+H_A:
+\left(
+\mathbf{p}_{\text{Education},2023}
+-
+\mathbf{p}_{\text{Education},2018}
+\right)
+\neq
+\left(
+\mathbf{p}_{\text{Work},2023}
+-
+\mathbf{p}_{\text{Work},2018}
+\right)
+$$
+
+This formulation formally tests whether the structural evolution of travel behaviour differs between education and work.
+
+
+### Effect Size Assessment: Cramér’s V
+
+While the Chi-square test evaluates whether distributional differences are statistically detectable, it does not quantify the magnitude of those differences. Given the use of full-population national Census counts, very small deviations from homogeneity may yield statistically significant results. To assess the practical relevance of observed differences, effect size is therefore evaluated using Cramér’s V.
+
+Cramér’s V is defined as:
+
+$$
+V = \sqrt{\frac{\chi^2}{N (k - 1)}}
+$$
+
+where:
+
+* $\chi^2$ is the Pearson Chi-square statistic,
+* $N$ is the total number of observations in the contingency table,
+* $k = \min(G, C)$,
+* $G$ is the number of groups,
+* $C$ is the number of travel categories.
+
+Cramér’s V ranges between 0 and 1, with larger values indicating stronger departure from homogeneity.
+
+Although interpretation thresholds depend on context and table dimensions, conventional benchmarks are often used for guidance:
+
+* $V \approx 0.10$: small association
+* $V \approx 0.30$: moderate association
+* $V \approx 0.50$: large association
+
+These thresholds are interpreted cautiously, given the aggregated and population-level nature of the data.
+
+Reporting Cramér’s V alongside p-values ensures that conclusions regarding distributional change are informed not only by statistical significance but also by substantive magnitude.
+
+
+## Multinomial Modelling of Time-Journey Interaction Effects
+
+While Chi-square tests assess distributional homogeneity across pairs of groups, they do not directly model the joint influence of Census year and journey type on travel-mode probabilities. To formally evaluate whether temporal shifts in travel-mode composition differ between Education and Work journeys, a multinomial logistic regression model with interaction terms is employed.
+
+This model provides a parametric framework for analysing categorical outcomes with more than two unordered categories. In this context, the outcome variable is travel category, which consists of five mutually exclusive categories:
+
+* Private Transport
+* Public Transport
+* Active Transport
+* At Home
+* Other Transport
+
+The modelling objective is to determine whether the change in travel-mode probabilities between 2018 and 2023 depends on journey type.
+
+
+### Conceptual Framework
+
+The multinomial modelling framework is introduced to evaluate whether the evolution of travel-mode composition over time differs systematically between Education and Work journeys. While earlier sections tested homogeneity using contingency tables, those approaches evaluate distributions pairwise. The multinomial model instead provides a unified probability-based representation of travel behaviour, allowing time effects, journey-type effects, and their interaction to be assessed simultaneously.
+
+In this context, travel mode is treated as a categorical outcome with multiple unordered categories. For each combination of Census year and journey type, individuals are distributed across a fixed set of travel categories. The modelling objective is to describe how the probability of each travel category varies as a function of Census year and journey type, and to determine whether the temporal shift from 2018 to 2023 differs between the two journey contexts.
+
+Formally, let
+
+$$
+Y_i \in \{1,2,\dots,C\}
+$$
+
+denote the travel category for observation $i$, where $C = 5$ represents the five harmonised travel categories.
+
+Let:
+
+* $y \in \{2018, 2023\}$ denote Census year,
+* $j \in \{\text{Education}, \text{Work}\}$ denote journey type.
+
+The probability of travel category $c$ conditional on Census year and journey type is defined as:
+
+$$
+\pi_{j,y,c} = P(Y = c \mid j, y)
+$$
+
+The central inferential question is whether the change in these probabilities between 2018 and 2023 differs across journey types. In other words, the analysis tests whether the effect of time on travel-mode composition depends on whether the journey is for education or for work. Within a regression framework, this corresponds to testing for the presence of a statistical interaction between Census year and journey type.
+
+
+### Multinomial Logistic Model Specification
+
+Having defined the conceptual objective of modelling travel-mode probabilities as a function of Census year and journey type, we now formalise the regression structure used to estimate these effects.
+
+Because travel mode consists of five unordered categories, a multinomial logistic regression model is employed. This model expresses the log-odds of selecting each non-reference travel category relative to a baseline category as a linear function of explanatory variables.
+
+One category must be chosen as a reference. Let category $C$ serve as the baseline. All other categories are modelled relative to this reference.
+
+For each category $c \neq C$, the log-odds of choosing category $c$ over the reference category is modelled as:
+
+$$
+\log\left(\frac{\pi_{j,y,c}}{\pi_{j,y,C}}\right)
+=
+\beta_{0c}
++
+\beta_{1c}\,\text{Year}_y
++
+\beta_{2c}\,\text{Journey}_j
++
+\beta_{3c}\,(\text{Year}_y \times \text{Journey}_j)
+$$
+
+where:
+
+* $\pi_{j,y,c}$ is the probability of travel category $c$
+* $\beta_{0c}$ is the baseline log-odds for category $c$
+* $\beta_{1c}$ captures the main effect of Census year
+* $\beta_{2c}$ captures the main effect of journey type
+* $\beta_{3c}$ captures the interaction between year and journey type
+
+The interaction term allows the effect of time (2018 vs 2023) to differ between Education and Work journeys.
+
+In the absence of interaction $( \beta_{3c} = 0 )$, the time-based change in travel-mode probabilities is identical across journey types. When interaction terms are non-zero, temporal shifts vary systematically between Education and Work.
+
+This specification provides a unified parametric framework for modelling structural change across multiple travel categories simultaneously.
+
+
+### Hypothesis Testing: Interaction Between Year and Journey Type
+
+The primary inferential objective of the multinomial model is to determine whether time-based shifts in travel-mode composition differ between Education and Work journeys.
+
+Conceptually, this corresponds to testing whether the effect of Census year depends on journey type - that is, whether an interaction is present.
+
+Formally, the null hypothesis states that the interaction coefficients are jointly zero across all non-reference categories:
+
+$$
+H_0:
+\beta_{3c} = 0
+\quad \text{for all } c
+$$
+
+Under this null hypothesis, the temporal shift from 2018 to 2023 is identical for Education and Work journeys.
+
+The alternative hypothesis is:
+
+$$
+H_A:
+\exists \ c \text{ such that } \beta_{3c} \neq 0
+$$
+
+indicating that at least one travel category exhibits a differential time-based change between journey types.
+
+To evaluate this hypothesis, a likelihood ratio test is conducted. Two nested models are compared:
+
+1. A reduced model containing only main effects (Year and Journey type),
+2. A full model containing both main effects and interaction terms.
+
+Let:
+
+* $L_\text{reduced}$ denote the likelihood of the model without interaction,
+* $L_\text{full}$ denote the likelihood of the model with interaction.
+
+The likelihood ratio statistic is defined as:
+
+$$
+\Lambda
+=
+-2
+\left(
+\log L_\text{reduced}
+-
+\log L_\text{full}
+\right)
+$$
+
+
+Under standard regularity conditions, this statistic follows a Chi-square distribution with degrees of freedom equal to the number of interaction parameters removed.
+
+Rejection of $H_0$ implies that the evolution of travel-mode probabilities between 2018 and 2023 differs between Education and Work journeys.
+
+This modelling approach provides a direct and unified test of the central research question regarding differential structural change.
+
+
+### Model Assumptions and Validity
+
+The validity of the multinomial logit model relies on several assumptions:
+
+
+#### Multinomial Count Formulation and Group Structure
+
+The multinomial model is fitted to aggregated counts defined by journey type and Census year across the five harmonised travel categories. For each combination $(j,y)$, the observed count vector
+$(N_{j,y,1}, \dots, N_{j,y,C})$
+is treated as a multinomial outcome conditional on the total $N_{j,y}$.
+
+This formulation is consistent with the mutually exclusive and collectively exhaustive nature of the Census-reported main travel mode variable.
+
+Inference is framed around differences in categorical distributions between group-defined populations (journey type and Census year), rather than independence of individual unit-record observations. Because the analysis operates on aggregated count vectors rather than microdata, the relevant assumption is the multinomial allocation of counts within each group.
+
+Given the structure of the Census tabulations and the use of national-level totals, this modelling framework is appropriate.
+
+
+#### Multinomial Sampling Structure
+
+Within each combination of year and journey type, the counts across travel categories sum to a fixed total. This is consistent with a multinomial data-generating process.
+
+Given that national-level counts are used, expected cell frequencies are substantial, and asymptotic approximations are reliable.
+
+
+#### Independence of Irrelevant Alternatives (IIA)
+
+The multinomial logit model assumes that the relative odds between any two categories are independent of the presence of other categories.
+
+In this context, travel categories are broad structural groupings rather than highly substitutable alternatives (e.g., “Private”, “Public”, “Active”, etc.). While no model perfectly satisfies IIA in behavioural contexts, there is no empirical indication that category aggregation induces violations severe enough to invalidate inference.
+
+Given the categorical aggregation strategy and the policy-oriented objective of the analysis, the multinomial logit framework is considered appropriate.
+
+
+#### Absence of Perfect Separation
+
+Given large Census counts across all categories and groups, there is no evidence of zero-probability categories that would induce separation issues.
+
+
+
+### Effect Size Interpretation in the Multinomial Framework
+
+While likelihood ratio tests determine whether the interaction between Census year and journey type is statistically significant, statistical significance alone does not convey the magnitude of the effect. Given the large national Census counts used in this study, even relatively small shifts in travel-mode probabilities may yield highly significant test statistics. It is therefore essential to complement hypothesis testing with measures that reflect substantive magnitude.
+
+In a multinomial logistic framework, effect size is interpreted through the estimated regression coefficients and their transformation into odds ratios. Each coefficient represents the change in the log-odds of selecting travel category $c$ relative to the reference category, associated with a unit change in the predictor.
+
+For category $c \neq C$, the interaction coefficient $\beta_{3c}$ quantifies how the time-based change in log-odds differs between Education and Work journeys.
+
+Exponentiating the coefficient yields the odds ratio:
+
+$$
+\text{OR}_{3c} = \exp(\beta_{3c})
+$$
+
+An odds ratio interpretation follows:
+
+* $\text{OR}_{3c} = 1$: No differential time effect between journey types
+* $\text{OR}_{3c} > 1$: The increase in odds over time is larger for Education relative to Work (or vice versa depending on coding)
+* $\text{OR}_{3c} < 1$: The increase in odds over time is smaller for Education relative to Work
+
+Unlike the Chi-square statistic, odds ratios are scale-independent and allow interpretation of direction and relative magnitude.
+
+However, odds ratios reflect changes in relative odds rather than changes in actual probabilities. Because policy interpretation is often more intuitive in probability space, predicted probabilities are additionally computed.
+
+
+### Predicted Probability Formulation and Interpretation
+
+Regression coefficients in a multinomial logit model are expressed in log-odds space, which can be difficult to interpret substantively. To translate model estimates into meaningful behavioural interpretation, predicted probabilities are derived for each combination of Census year and journey type.
+
+The multinomial logit model specifies category probabilities as:
+
+$$
+\pi_{j,y,c}
+=
+\frac{\exp(\eta_{j,y,c})}
+{\sum_{k=1}^{C} \exp(\eta_{j,y,k})}
+$$
+
+where:
+
+$$
+\eta_{j,y,c}
+=
+\beta_{0c}
++
+\beta_{1c} \text{Year}_y
++
+\beta_{2c} \text{Journey}_j
++
+\beta_{3c} (\text{Year}_y \times \text{Journey}_j)
+$$
+
+and the reference category satisfies $\eta_{j,y,C} = 0$.
+
+This formulation ensures that:
+
+$$
+\sum_{c=1}^{C} \pi_{j,y,c} = 1
+$$
+
+for every combination of year and journey type.
+
+Predicted probabilities provide a direct estimate of:
+
+$$
+P(Y = c \mid j, y)
+$$
+
+for each travel category.
+
+These probabilities allow:
+
+* Direct comparison of travel-mode shares between 2018 and 2023
+* Direct comparison between Education and Work
+* Quantification of the magnitude of time-based shifts
+* Clear visual presentation of interaction effects
+
+Importantly, the presence of a statistically significant interaction implies that:
+
+$$
+\pi_{\text{Education},2023,c}
+-
+\pi_{\text{Education},2018,c}
+\neq
+\pi_{\text{Work},2023,c}
+-
+\pi_{\text{Work},2018,c}
+$$
+
+for at least one category $c$.
+
+Thus, predicted probabilities translate statistical interaction into interpretable distributional change.
+
+
+
+
+### Rationale for Model Choice
+
+The multinomial interaction model offers several methodological advantages over pairwise Chi-square testing.
+
+First, it evaluates interaction effects directly within a single unified regression framework, rather than relying on multiple contingency-table comparisons. This allows the time effect, journey-type effect, and their interaction to be estimated simultaneously.
+
+Second, the model provides category-specific parameter estimates, enabling identification of which travel categories contribute most strongly to differential structural change.
+
+Third, likelihood-based model comparison provides a formal and coherent inferential basis for testing nested hypotheses regarding interaction effects.
+
+Fourth, the regression framework facilitates effect size interpretation through odds ratios, allowing magnitude and direction of change to be quantified beyond mere statistical significance.
+
+Finally, the derivation of predicted probabilities enables interpretation in probability space rather than log-odds space. This is particularly important in a policy context, where percentage-point changes in travel-mode shares are more interpretable than relative odds. The model therefore bridges statistical inference and substantive interpretation.
+
+Taken together, the multinomial interaction framework provides a comprehensive and interpretable approach to assessing whether time-based shifts in travel-mode distributions differ between Education and Work journeys.
+
+There is no evidence suggesting that the underlying model assumptions are violated in a manner that would preclude its use in this setting.
+
+
+## Extensions to Regions and Sub-Populations
+
+While Sections 2.2-2.4 focus on national-level travel-mode composition and inferential comparison, structural change in travel behaviour may not be spatially uniform. Urban form, settlement density, transport infrastructure, and institutional arrangements vary considerably across New Zealand. To assess spatial heterogeneity, the analytical framework defined previously is extended to the regional and city level.
+
+This section applies the previously defined measures of mode share, percentage-point change, and difference-in-differences at finer geographic resolution. No new inferential model is introduced; rather, the national framework is implemented within regional partitions of the data.
+
+
+### Region-Level Travel Mode Shares and Percentage-Point Change
+
+For each region $r$, journey type $j$, Census year $y$, and travel category $c$, regional mode shares are computed using the same formulation defined in Section 2.2.1, but restricting aggregation to region $r$.
+
+Thus, regional shares take the form:
+
+$$
+S_{r,j,y,c}
+$$
+
+where totals are summed over all SA2 units belonging to region $r$.
+
+Temporal change within each region and journey type is then measured using the percentage-point change formulation introduced in Section 2.2.2:
+
+$$
+\Delta_{r,j,c}
+=
+S_{r,j,2023,c} -
+S_{r,j,2018,c}
+$$
+
+This produces a regional map of structural change, allowing identification of regions experiencing larger or smaller shifts in specific travel categories.
+
+
+
+### Regional Difference-in-Differences
+
+To evaluate whether temporal shifts differ between Education and Work within a specific region, the difference-in-differences framework from Section 2.2.3 is applied at the regional level.
+
+For each region $r$ and category $c$:
+
+$$
+DiD_{r,c}
+=
+\Delta_{r,Education,c}
+-
+\Delta_{r,Work,c}
+$$
+
+This statistic quantifies whether the magnitude of change between 2018 and 2023 differs between journey types within region $r$.
+
+Positive values indicate that Education experienced a larger increase (or smaller decline) than Work in that region, while negative values indicate the opposite.
+
+These quantities remain descriptive and are not subjected to separate inferential testing.
+
+
+
+### Urban and Non-Urban Group Comparisons
+
+Because settlement structure may systematically influence travel behaviour, regions are grouped into Urban and Non-Urban classifications. To summarise behaviour at the group level, weighted averages of regional shares are computed.
+
+Let $N_{r,j,y}$ denote the total number of journeys in region $r$ for journey type $j$ and Census year $y$.
+
+Group-level mode shares are defined as weighted averages:
+
+$$
+S_{G,j,y,c}
+=
+\frac{
+\sum_{r \in G}
+N_{r,j,y} \, S_{r,j,y,c}
+}{
+\sum_{r \in G}
+N_{r,j,y}
+}
+$$
+
+where $G \in \{\text{Urban}, \text{Non-Urban}\}$.
+
+This weighting ensures that regions contribute proportionally according to their population size, preventing small regions from exerting disproportionate influence.
+
+Percentage-point changes and difference-in-differences at the group level are then computed using the same definitions provided in Sections 2.2.2 and 2.2.3.
+
+
+### City-Level Comparison
+
+To provide finer-grained insight within major urban areas, selected cities are analysed individually using the same regional framework described above.
+
+For each city:
+
+* Mode shares are computed as in Section 2.2.1.
+* Percentage-point changes are computed as in Section 2.2.2.
+* Difference-in-differences is computed as in Section 2.2.3.
+
+This allows identification of whether large metropolitan areas exhibit stronger or weaker divergence between Education and Work travel over time.
+
+
+### Analytical Positioning
+
+The regional and city-level extensions serve two purposes:
+
+1. To evaluate whether national-level findings are driven disproportionately by specific geographic contexts.
+2. To assess whether post-pandemic structural change is spatially concentrated or broadly distributed.
+
+These analyses remain descriptive and complement the inferential results presented in Sections 2.3 and 2.4. No additional model-based inference is introduced at the regional level.
+
+
+## Drivers of Change: Gender, Age Group, and Region
+
+While earlier sections establish whether travel-mode distributions changed over time and whether those changes differ between Education and Work journeys, they do not identify which demographic or geographic sub-populations contribute most strongly to those shifts. Structural change observed at the national level may arise from concentrated changes within particular groups (e.g., younger individuals or metropolitan residents), or from broad-based adjustments across the entire population.
+
+To investigate these patterns, the analytical framework is extended to stratified comparisons by gender, age group, and region. The objective is to determine whether observed temporal shifts are driven disproportionately by specific subgroups.
+
+The methodology below applies the same share-based and difference-in-differences framework introduced earlier, but within demographic and geographic partitions of the data.
+
+
+
+### Stratified Mode Shares
+
+To identify how travel behaviour differs across sub-populations, mode shares are computed separately within each subgroup. This allows comparison of distributional structure across gender, age groups, and regions.
+
+Let:
+
+* $s$ denote subgroup (gender, age group, or region),
+* $j \in \{\text{Education}, \text{Work}\}$ denote journey type,
+* $y \in \{2018, 2023\}$ denote Census year,
+* $c \in \{1, \dots, C\}$ denote travel category.
+
+Let:
+
+$$
+N_{s,j,y,c}
+$$
+
+denote the number of journeys in subgroup $s$, journey type $j$, Census year $y$, and category $c$.
+
+The total number of journeys within subgroup $s$ is:
+
+$$
+N_{s,j,y}
+=
+\sum_{c=1}^{C} N_{s,j,y,c}
+$$
+
+The subgroup-specific mode share is defined as:
+
+$$
+S_{s,j,y,c}
+=
+\frac{N_{s,j,y,c}}{N_{s,j,y}}
+$$
+
+This quantity represents the proportion of journeys in subgroup $s$ that fall within travel category $c$ for a given journey type and year.
+
+By computing these shares separately for each subgroup, differences in travel behaviour across demographic and regional segments can be directly observed.
+
+
+
+### Subgroup-Specific Percentage-Point Change
+
+To evaluate how travel behaviour evolved within each subgroup, temporal change is measured using percentage-point differences between Census waves.
+
+For each subgroup $s$, journey type $j$, and category $c$, the change between 2018 and 2023 is defined as:
+
+$$
+\Delta_{s,j,c}
+=
+S_{s,j,2023,c}
+-
+S_{s,j,2018,c}
+$$
+
+This measure quantifies how the distribution of travel modes shifted within subgroup $s$ over time.
+
+Because this is expressed in percentage points, it directly reflects changes in composition rather than relative growth rates. This makes interpretation straightforward when comparing across subgroups.
+
+
+### Subgroup Difference-in-Differences
+
+To determine whether temporal shifts differ between Education and Work within a specific subgroup, a difference-in-differences measure is computed at the subgroup level.
+
+For each subgroup $s$ and travel category $c$:
+
+$$
+DiD_{s,c}
+=
+\Delta_{s,\text{Education},c}
+-
+\Delta_{s,\text{Work},c}
+$$
+
+This statistic measures whether the magnitude of change between 2018 and 2023 differs across journey types within subgroup $s$.
+
+* $DiD_{s,c} = 0$ indicates identical shifts,
+* $DiD_{s,c} > 0$ indicates a larger change in Education,
+* $DiD_{s,c} < 0$ indicates a larger change in Work.
+
+This framework isolates subgroup-specific divergence between journey contexts.
+
+
+### Contribution to Aggregate Change
+
+Aggregate national shifts may arise from two distinct mechanisms:
+
+1. Changes within subgroups (behavioural shifts), and
+2. Changes in subgroup composition (population weighting effects).
+
+To distinguish these components, subgroup weights are defined.
+
+Let:
+
+$$
+w_{s,j,y}
+=
+\frac{N_{s,j,y}}{N_{j,y}}
+$$
+
+where:
+
+$$
+N_{j,y}
+=
+\sum_{s} N_{s,j,y}
+$$
+
+represents the total number of journeys for journey type $j$ and year $y$.
+
+National shares can therefore be expressed as a weighted average of subgroup shares:
+
+$$
+S_{j,y,c}
+=
+\sum_{s} w_{s,j,y} \, S_{s,j,y,c}
+$$
+
+This representation clarifies that national-level change reflects both within-group shifts and differences in subgroup weights.
+
+Although a full Oaxaca–Blinder decomposition is not performed, this weighted formulation provides conceptual insight into how subgroup dynamics contribute to aggregate structural change.
+
+
+
+### Analytical Scope and Interpretation
+
+The driver analysis is conducted separately for:
+
+* Gender categories (Male, Female, Other),
+* Broad age groups,
+* Regional groupings.
+
+The purpose of this analysis is descriptive attribution rather than formal hypothesis testing. The results identify which demographic and geographic segments account for the largest changes in travel-mode composition and whether divergence between Education and Work journeys is concentrated within specific sub-populations.
+
+
+
+
+### Software and Reproducibility
+
+All statistical analyses were conducted in **R (version 4.4.3)** within the RStudio environment. Core packages used in the analysis included *dplyr*, *tidyr*, *ggplot2*, *readr*, *purrr*, *broom*, *knitr*, and *kableExtra* for data manipulation, statistical testing, and table/figure generation.
+
+The analytical workflow was implemented through a fully scripted and deterministic R Markdown pipeline, ensuring reproducibility of all reported tables and figures directly from the cleaned dataset. No manual post-processing was applied to statistical outputs.
+
+All code used for data preparation, statistical analysis, and visualization is maintained in an internal version-controlled repository and is available upon reasonable request.
+
+
+
+# Results
+
+This section presents the empirical findings corresponding to the analytical framework defined in Sections 2.2–2.6. Results are structured to mirror the methodological sequence, beginning with national-level travel-mode composition and percentage-point changes, followed by formal statistical inference, multinomial interaction modelling, regional extensions, and subgroup driver analysis.
+
+All reported quantities are derived from aggregated Census population counts for 2018 and 2023. Descriptive results are presented using mode shares and percentage-point changes, while inferential findings include Chi-square tests of homogeneity, effect size measures, and likelihood-based model comparisons. Predicted probabilities from the multinomial model are used to facilitate interpretation in percentage-point space.
+
+Figures reproduced from the Power BI analytical dashboard are included to visualise structural shifts, while corresponding statistical outputs and model summaries are presented in tables derived from the R analysis pipeline. Together, these results provide a comprehensive evaluation of whether and how travel behaviour to education and work evolved between Census waves.
+
+
+##  National Travel-Mode Composition and Percentage-Point Change
+
+
+This subsection presents national travel-mode distributions for Journey to Education and Journey to Work in the 2018 and 2023 Censuses. Mode shares are computed from aggregated national counts and expressed as percentages to enable direct comparison of distributional composition across journey types and Census waves.
+
+In 2018, work-related travel was dominated by Private Transport, accounting for the majority of journeys, followed by Public Transport and Active Transport. Education journeys exhibited a more diversified distribution, with relatively higher shares in Active and Public Transport compared to Work, and a smaller reliance on Private Transport.
+
+By 2023, both journey types exhibit a marked structural shift. The most notable change is the substantial increase in the “At home” category for both Education and Work. This increase reflects a redistribution away from traditional commuting modes. Correspondingly, Public Transport shares decline relative to 2018 levels, while Private Transport and Active Transport display more moderate adjustments.
+
+The comparison of national-level mode shares reveals that although both journey types moved in similar directions between Census waves, the magnitude of change differs across categories. Education maintains a comparatively higher reliance on Active and Public modes than Work in both years, whereas Work remains more concentrated in Private Transport.
+
+
+```{r fig-edu-work-overview, echo=FALSE, fig.cap="National Travel Mode Share Comparison: Education vs Work (2018 vs 2023)", fig.align='center', out.width="1.0\\linewidth", fig.pos='H'}
+knitr::include_graphics("../../figures/edu_work_mode_share.png")
+```
+
+\FloatBarrier
+
+```{r include=FALSE, ref.label="shares_nz_object"}
+```
+```{r include=TRUE, ref.label="edu_work_travel_mode_share_pp_nz"}
+```
+
+
+
+### Percentage-Point Change (2018–2023)
+
+To quantify structural change over time, percentage-point differences between 2018 and 2023 are examined for each travel category within each journey type.
+
+The most pronounced change for both Education and Work is the increase in the “At home” category. This increase represents a structural redistribution in travel behaviour rather than a marginal fluctuation. Public Transport exhibits a clear decline across both journey types, indicating contraction relative to pre-2018 levels.
+
+Private Transport shows more nuanced behaviour. While it remains the dominant mode for Work, its change over time is comparatively smaller than that observed for “At home.” Active Transport demonstrates relatively modest percentage-point variation compared to the larger shifts in remote or home-based activity.
+
+Although the directional patterns of change are similar across Education and Work, the magnitude of percentage-point shifts differs across categories. This motivates the comparative analysis presented next.
+
+
+```{r fig-edu-work-pp-change, echo=FALSE, fig.cap="Percentage-Point Change: Education vs Work (2018-2023)", fig.align='center', out.width="1.0\\linewidth", fig.pos='H'}
+knitr::include_graphics("../../figures/edu_work_pp_change.png")
+```
+
+\FloatBarrier
+
+```{r include=TRUE, ref.label="edu_work_pp_change_2023_minus_2018"}
+```
+
+
+### Difference-in-Differences: Education vs Work
+
+To determine whether Education and Work evolved differently over time, difference-in-differences estimates are examined at the category level.
+
+The DiD results indicate that while both journey types experienced increases in “At home,” the magnitude of change differs between them. Similarly, reductions in Public Transport and adjustments in Private and Active Transport vary in strength between Education and Work.
+
+Categories with DiD values near zero suggest parallel structural shifts across journey types, whereas larger positive or negative DiD values indicate differential evolution. These findings suggest that although the broad direction of change is similar, the structural reallocation of travel modes is not identical between Education and Work contexts.
+
+This descriptive divergence sets the stage for the formal inferential tests presented in Section 3.2.
+
+
+
+```{r fig-edu-mode-share-gap, echo=FALSE, fig.cap="Difference-in-Differences: Education vs Work (2018-2023)", fig.align='center', out.width="1.0\\linewidth", fig.pos='H'}
+knitr::include_graphics("../../figures/edu_work_mode_share_gap.png")
+```
+
+
+\FloatBarrier
+
+```{r include=TRUE, ref.label="edu_work_share_did"}
+```
+
+## Statistical Inference: Distributional Comparisons Across Years and Journey Types
+
+Section 3.1 established descriptive differences in travel-mode composition across Census years and journey types. This section formalises those observations using Pearson’s chi-square tests to evaluate whether observed differences represent statistically detectable distributional divergence. Given the extremely large national Census counts, statistical significance is interpreted alongside effect size (Cramér’s V) to distinguish detectability from substantive magnitude.
+
+### Time-Based Change Within Education (2018 vs 2023)
+
+**Is there statistically significant evidence that the distribution of travel modes for Education changed between 2018 and 2023?**
+
+The Pearson chi-square test showed a statistically significant association between Census year and travel category within Education journeys ($\chi^2(4) = 13{,}501, p < 0.001$). Since $p < 0.05$, we reject the null hypothesis that the distribution of Education travel modes was identical in 2018 and 2023. This indicates that education-related travel behaviour underwent statistically detectable structural redistribution over the five-year period.
+
+
+```{r include=FALSE, ref.label="test_time_shift_funtion"}
+```
+```{r include=TRUE, ref.label="edu_chi-square_test_tbl"}
+```
+
+
+### Time-Based Change Within Work (2018 vs 2023)
+
+**Is there statistically significant evidence that the distribution of travel modes for Work changed between 2018 and 2023?**
+
+The Pearson chi-square test showed a statistically significant association between Census year and travel category within Work journeys ($\chi^2(4) = 66,534, p < 0.001$). Since $p < 0.05$, we reject the null hypothesis that the distribution of Work travel modes was identical in 2018 and 2023. This indicates that work-related travel patterns experienced substantial structural change between Census waves.
+
+
+```{r include=TRUE, ref.label="work_chi-square_test_tbl"}
+```
+
+
+### Cross-Journey Comparison in 2018
+
+**Is there statistically significant evidence that the distribution of travel modes differed between Education and Work in 2018?**
+
+
+The Pearson chi-square test showed a statistically significant association between journey type and travel category in 2018 ($\chi^2(4) = 517,341, p < 0.001$). Since $p < 0.05$, we reject the null hypothesis that Education and Work shared the same travel-mode distribution in 2018. This confirms that baseline modal composition differed structurally between students and workers prior to the pandemic period.
+
+
+```{r include=FALSE, ref.label="test_edu_vs_work_by_year_funcion"}
+```
+
+```{r include=TRUE, ref.label="chi_edu_work_2018"}
+```
+
+
+### Cross-Journey Comparison in 2023
+
+**Is there statistically significant evidence that the distribution of travel modes differed between Education and Work in 2023?**
+
+The Pearson chi-square test showed a statistically significant association between journey type and travel category in 2023 ($\chi^2(4) = 572,042, p < 0.001$). Since $p < 0.05$, we reject the null hypothesis that Education and Work shared the same travel-mode distribution in 2023. This indicates that journey-purpose differentiation in travel behaviour persisted in the post-pandemic period.
+
+
+```{r include=TRUE, ref.label="chi_edu_work_2023"}
+```
+
+
+### Effect Size for Cross-Journey Differences
+
+Because Census counts are extremely large, statistical significance alone does not convey substantive magnitude. Effect size is therefore assessed using Cramér’s V.
+
+The estimated values are 0.3261 for 2018 and 0.3339 for 2023, indicating a moderate-to-strong association between journey type and travel category in both Census years. The stability of effect size across waves suggests that cross-journey structural differentiation remains substantively meaningful rather than merely statistically detectable.
+
+
+```{r include=TRUE, ref.label="cramers_v_tbl"}
+```
+
+
+
+### Differential Change Between Journey Types (2018–2023)
+
+**Is there statistically significant evidence that the change in travel-mode distributions between 2018 and 2023 differed between Education and Work journeys?**
+
+The Pearson chi-square test showed a statistically significant association between journey type and category-wise change profiles over time ($\chi^2(4) = 91{,}461, p < 0.001$). Since p < 0.05, we reject the null hypothesis that Education and Work experienced identical temporal redistribution across travel categories. This indicates that the magnitude and structure of modal change between 2018 and 2023 differed systematically between journey purposes.
+
+
+```{r include=FALSE, ref.label="shift_tab_function"}
+```
+
+```{r include=TRUE, ref.label="chisq_shift_tbl"}
+```
+
+
+
+**Synthesis of Inferential Findings**
+
+Collectively, the chi-square analyses establish three consistent findings. First, both Education and Work travel-mode distributions changed significantly between 2018 and 2023. Second, Education and Work differed significantly within each Census year, with moderate-to-strong effect sizes confirming substantive journey-purpose differentiation. Third, the structure of temporal redistribution differed between journey types, indicating that post-pandemic travel adjustments were not uniform across journey purposes. Together, these results provide strong statistical evidence that travel behaviour in New Zealand underwent structurally differentiated change between 2018 and 2023.
+
+
+## Multinomial Model: Differential Time-Based Change Between Education and Work
+
+While Section 3.2 established statistically significant distributional differences using contingency-table methods, this section provides a unified regression-based assessment of whether the 2018–2023 shifts differ systematically between Education and Work journeys.
+
+A multinomial logistic regression model was estimated with travel category as the outcome and Census year, journey type, and their interaction as predictors. The key inferential focus is the Year × Journey Type interaction, which tests whether the temporal effect of Census year differs across journey purposes.
+
+
+### Likelihood Ratio Test for Year × Journey Type Interaction
+
+**Is there statistically significant evidence, based on the multinomial interaction model, that the change in travel-mode distributions between 2018 and 2023 differed between Education and Work journeys?**
+
+A likelihood ratio test compared a baseline multinomial model containing only main effects (Census year and journey type) with a model including the Year × Journey Type interaction.
+
+The likelihood ratio test showed a statistically significant improvement in model fit when the interaction term was included $(\chi^2(4) = 1320, p < 0.001)$. 
+
+```{r include=FALSE, ref.label="model_data_function"}
+```
+```{r include=FALSE, ref.label="multinomial_logistic_regression_model_funtion"}
+```
+
+```{r include=TRUE, ref.label="likelihood-ratio_test"}
+```
+
+
+
+
+Since $p < 0.05$, we reject the null hypothesis that the time-based shift in travel-mode distribution is identical for Education and Work journeys.
+
+This result indicates that allowing the temporal effect to differ by journey type substantially improves model fit, providing strong regression-based evidence that Education and Work underwent structurally distinct modal reallocation between 2018 and 2023.
+
+
+```{r include=TRUE, ref.label="lrt_multinomial_model"}
+```
+
+### Model-Based Percentage-Point Changes in Travel Mode Shares
+
+While the likelihood ratio test establishes statistical significance of the interaction, it does not directly convey how travel behaviour changed. To obtain interpretable effect sizes, predicted probabilities from the fitted multinomial model were computed and converted into percentage-point changes for each journey type and travel category.
+
+The model-based predicted shares confirm distinct temporal adjustment patterns across journey types.
+
+For Education journeys, the predicted percentage-point changes between 2018 and 2023 are as follows:
+
+
+```{r include=TRUE, ref.label="pred_pp_edu_table"}
+```
+
+For Work journeys, the predicted percentage-point changes are as follows:
+
+
+```{r include=TRUE, ref.label="pred_pp_work_table"}
+```
+
+These results demonstrate that although both journey types experienced increases in at-home travel, the magnitude of increase was substantially larger for Work. Conversely, Education exhibited a modest increase in private transport, whereas Work showed a pronounced decline. 
+
+This confirms that the interaction detected by the likelihood ratio test reflects meaningful and interpretable structural divergence in modal reallocation.
+
+
+### Interpretation and Synthesis
+
+The multinomial modelling results reinforce and extend the contingency-table findings in Section 3.2. The significant interaction $(\chi^2(4) = 1320, p < 0.001)$ confirms that the 2018–2023 shift in travel-mode distribution differs between Education and Work when all travel categories are considered jointly.
+
+Importantly, the predicted probability contrasts reveal the substantive structure of this interaction: Work journeys experienced a substantially larger shift toward at-home participation and a notable decline in private transport, whereas Education journeys underwent more moderate adjustments.
+
+Together, the likelihood ratio test and model-based predicted probabilities provide converging evidence that post-2018 modal reallocation was not uniform across journey purposes. The regression framework therefore confirms that the observed difference-in-differences patterns reflect statistically robust and substantively meaningful divergence between Education and Work travel behaviour.
+
+
+
+
+## Regional and Sub-Population Extensions
+
+This subsection extends the national-level findings by examining whether modal redistribution between 2018 and 2023 is spatially uniform or regionally differentiated. Consistent with Section 2.5, analysis proceeds in four stages: (i) region-level distributional change, (ii) region-level percentage-point change, (iii) urban versus non-urban grouping, and (iv) regional difference-in-differences between journey purposes.
+
+All analyses are descriptive and based on Census population counts.
+
+
+
+
+### Region-Level Distributional Change
+
+To assess whether travel-mode distributions changed within each region between the 2018 and 2023 Censuses, Pearson Chi-square tests of homogeneity were conducted separately for Journey to Education and Journey to Work.
+
+**Table below** reports the region-specific Chi-square statistics, degrees of freedom, and associated p-values for both journey purposes.
+
+```{r include=TRUE, ref.label="region-wise_pearson_chi-square_tests"}
+```
+
+
+
+Across all regions, the tests provide strong evidence of distributional change for both Education and Work. P-values are uniformly extremely small, indicating statistically detectable shifts in modal composition between Census waves. Given the population-level nature of Census data, statistical significance is expected; therefore, interpretation emphasises the relative magnitude of change rather than significance alone.
+
+The magnitude of the Chi-square statistics varies substantially across regions. Major metropolitan regions (e.g., Auckland, Wellington, Canterbury) exhibit markedly larger statistics, particularly for Work, reflecting substantial redistribution in commuting patterns. In contrast, smaller regions display lower absolute values, although distributional change remains statistically evident.
+
+Notably, in most regions the Chi-square statistics for Work exceed those for Education, indicating that modal restructuring between 2018 and 2023 was generally stronger for Work-related travel. This pattern is consistent with broader structural adjustments in commuting behaviour.
+
+These results confirm that modal change occurred across all regions and for both journey purposes, motivating further examination of the magnitude and directional composition of regional percentage-point changes.
+
+
+### Region-Level Percentage-Point Change
+
+To quantify the magnitude and direction of change, percentage-point (pp) differences in mode share between 2018 and 2023 were computed for each region and journey type. Full results are reported in **Tables A1 (Education) and A2 (Work) in the Appendix**.
+
+Across regions, at-home participation increased for both journey types, with consistently larger gains observed for Work. The strongest increases are concentrated in major metropolitan regions, including Wellington and Auckland.
+
+Private transport declines are more pronounced for Work than for Education in metropolitan regions, whereas Education-related private transport changes are smaller and more heterogeneous.
+
+Public transport generally declines in high-reliance metropolitan regions, particularly for Work. Active transport also decreases in most regions, with larger reductions observed in several smaller regions for Education.
+
+Overall, modal redistribution occurred nationwide, but the magnitude of change is greater for Work and spatially concentrated in metropolitan centres.
+
+
+### Regional Difference-in-Differences
+
+To quantify divergence between Education and Work within each region, regional difference-in-differences (DiD) measures were computed as:
+
+$$DiD = (\Delta Education) - (\Delta Work)$$
+
+where $\Delta$ denotes the 2018–2023 percentage-point change.
+
+Regional DiD results are reported in **Table A5 in the Appendix**.
+
+
+Positive DiD values indicate that the increase (or reduction) in mode share was larger for Education than for Work, while negative values indicate stronger change for Work.
+
+Across regions, the largest negative DiD values occur in the **At-Home** category in major metropolitan regions, particularly Wellington and Auckland, indicating that remote participation increased substantially more for Work than for Education in these centres.
+
+In contrast, several regions exhibit positive DiD values in **Private Transport**, reflecting stronger contraction in commuting for Work relative to Education.
+
+Active and Public transport categories show more moderate and region-specific divergence, with both positive and negative values depending on local context.
+
+Overall, the DiD results confirm that divergence between Education and Work is not spatially uniform and is most pronounced in metropolitan labour-market regions.
+
+
+### Urban versus Non-Urban Comparisons
+
+To assess whether settlement structure moderates modal redistribution, five major urban regions (Auckland, Waikato, Bay of Plenty, Wellington, and Canterbury) and five non-urban regions (Gisborne, West Coast, Southland, Tasman, and Marlborough) were analysed separately. These classifications follow the grouping defined in Section 2.5.
+
+
+#### Mode Shares in 2018 and 2023 (Top 5 Urban vs Non-Urban)
+
+\clearpage
+
+```{r fig-urban-non_urban-more-share, echo=FALSE, fig.cap="Mode Share by Travel Category – Top 5 Urban and Non-Urban Regions (2018 vs 2023)", fig.align='center', out.width="1.0\\linewidth", fig.pos='H'}
+knitr::include_graphics("../../figures/urban_non-urban_mode_share.png")
+```
+
+The 2018–2023 comparison reveals clear structural contrasts.
+
+In **Urban regions**, Work travel remains heavily concentrated in Private transport (over 68% in 2023), but shows a visible shift toward At-Home participation (10.13% to 17.91%). Education displays smaller changes, with modest increases in At-Home participation and relatively stable Private transport shares.
+
+In **Non-Urban regions**, Private transport dominates both journey types in both years (exceeding 73% for Work in 2023). Changes between 2018 and 2023 are comparatively muted, particularly for Work, indicating greater modal stability outside metropolitan contexts.
+
+These patterns suggest that urban areas experienced more substantial redistribution in modal composition, especially for Work travel.
+
+
+#### Net Percentage-Point Changes (Urban vs Non-Urban)
+
+\clearpage
+
+```{r fig-urban-non_urban-pp-change, echo=FALSE, fig.cap="Net Change in Mode Share – Urban and Non-Urban Regions", fig.align='center', out.width="1.0\\linewidth", fig.pos='H'}
+knitr::include_graphics("../../figures/urban_non-urban_pp_change.png")
+```
+
+\FloatBarrier
+
+```{r include=FALSE, ref.label="urban_rural_grouping"}
+```
+
+```{r include=TRUE, ref.label="urban_non-urban_pp_changes"}
+```
+
+
+The net-change plots and Table 16 confirm that divergence is markedly stronger in Urban regions.
+
+In Urban areas:
+
+* Work *At-Home* participation increases sharply (+7.78 pp).
+* Work *Private transport* declines substantially (−4.29 pp).
+* Education changes are smaller and more moderate across all categories.
+
+In Non-Urban areas:
+
+* Work *At-Home* increases only modestly (+0.69 pp).
+* Private transport remains largely stable for both journey types.
+* Active transport declines are more pronounced for Education (−3.21 pp) than Work (−0.85 pp).
+
+Thus, metropolitan regions exhibit stronger behavioural adjustment, particularly in commuting-related modes.
+
+
+#### Difference-in-Differences: Education–Work Divergence
+
+\clearpage
+
+```{r fig-urban_non-urban_did, echo=FALSE, fig.cap="Change in Education-Work Mode Share Gap – Urban and Non-Urban Regions", fig.align='center', out.width="1.0\\linewidth", fig.pos='H'}
+knitr::include_graphics("../../figures/urban_non-urban_did.png")
+```
+
+\FloatBarrier
+
+```{r include=TRUE, ref.label="urban_non-urban_did_changes"}
+```
+
+
+The difference-in-differences results formalise these contrasts.
+
+In Urban regions:
+
+* A large negative DiD in *At-Home* (−4.82 pp) indicates that remote participation increased substantially more for Work than Education.
+* A strong positive DiD in *Private transport* (+5.06 pp) reflects sharper contraction in Work commuting relative to Education.
+* Public transport divergence is moderate (+0.82 pp).
+
+In Non-Urban regions:
+
+* DiD magnitudes are considerably smaller.
+* *At-Home* shows a positive DiD (+2.10 pp), indicating relatively stronger Education growth in remote participation compared with Work.
+* Other categories display limited divergence.
+
+Overall, the Education–Work gap widens more strongly in metropolitan settings.
+
+
+
+#### Region-Specific Patterns
+
+
+```{r fig-urban_non-urban_regional_change, echo=FALSE, fig.cap="Regional Change in Education–Work Mode Share Gap – Heatmap (Urban and Non-Urban)", fig.align='center', out.width="1.0\\linewidth", fig.pos='H'}
+knitr::include_graphics("../../figures/urban_non-urban_regional_change.png")
+```
+
+The heatmap further highlights heterogeneity within each classification.
+
+Among Urban regions:
+
+* Wellington and Auckland display the largest negative shifts in the At-Home gap (−6.68 pp and −6.36 pp respectively).
+* Private transport divergence exceeds +5 pp in multiple metropolitan regions.
+
+Among Non-Urban regions:
+
+* Divergence is less uniform.
+* West Coast exhibits a strong positive shift in the At-Home gap (+5.39 pp), while Active transport reductions are pronounced in Gisborne (−5.17 pp).
+
+These results indicate that even within classifications, local labour-market structure influences modal change intensity.
+
+
+#### Overall Findings for Top 5 Urban vs Non-Urban Regions
+
+Across all analyses, three consistent conclusions emerge:
+
+1. **Urban regions experienced substantially stronger modal redistribution**, particularly in Work travel.
+2. **Remote participation expanded most sharply in metropolitan labour-market centres**, widening the Education–Work gap.
+3. **Non-Urban regions exhibit greater modal stability**, with smaller difference-in-differences magnitudes and more aligned shifts across journey types.
+
+Settlement structure therefore plays a central moderating role in post-2018 travel behaviour change, with metropolitan regions driving the majority of structural divergence between Education and Work journeys.
+
+
+
+### City-Level Comparison
+
+To further examine spatial heterogeneity, four representative districts/cities were selected for focused analysis: two metropolitan centres (Wellington City and Christchurch City) and two non-metropolitan centres (Gisborne District and Invercargill City). These locations were chosen to contrast large urban labour-market hubs with smaller regional centres.
+
+Percentage-point changes in travel mode shares (2018–2023) are reported in **Table A3 in the Appendix**, and the corresponding difference-in-differences (Education – Work) estimates are presented in **Table A4 (Appendix)**.
+
+**Percentage-Point Changes**
+
+Clear contrasts emerge across the selected cities.
+
+In **Wellington City**, Work travel exhibits a substantial increase in *At-Home* participation (+10.56 pp), accompanied by a marked decline in *Private transport* (−5.71 pp). Education also shows increased At-Home participation (+3.79 pp) and growth in *Public transport* (+3.64 pp), while *Active transport* declines (−6.73 pp). These results indicate pronounced restructuring of commuting patterns in the capital.
+
+In **Christchurch City**, changes are more moderate. Work At-Home participation increases by +3.92 pp, while Private transport declines by −4.00 pp. Education shows smaller shifts, including a +2.88 pp increase in At-Home participation and relatively stable modal shares elsewhere.
+
+Among non-metropolitan centres, **Gisborne District** displays strong reductions in Education *Active transport* (−6.34 pp) and a notable increase in Education *Private transport* (+5.24 pp), suggesting modal substitution toward private vehicles. Work travel in Gisborne shows comparatively limited change.
+
+In **Invercargill City**, modal adjustments are modest overall. Education Active transport declines (−3.89 pp), while At-Home participation increases moderately for both journey types (+2.70 pp for Education; +0.59 pp for Work). Private transport remains largely stable.
+
+**Difference-in-Differences (Education – Work)**
+
+Difference-in-differences estimates in **Table A4** formalise these contrasts.
+
+Wellington City exhibits the largest divergence between journey types. The DiD for *At-Home* is −6.77 pp, indicating substantially stronger remote-work expansion relative to education. Strong positive DiD values in *Private transport* (+4.90 pp) and *Public transport* (+4.97 pp) reflect sharper contraction in commuting relative to education travel.
+
+Christchurch City shows moderate divergence, particularly in *Private transport* (+2.94 pp), consistent with stronger commuting contraction for Work.
+
+In Gisborne District, divergence is concentrated in *Private transport* (+4.92 pp) and *Active transport* (−5.17 pp), indicating education-specific shifts toward private modes. Invercargill City displays relatively small DiD magnitudes across categories, consistent with greater modal stability.
+
+**Summary**
+
+City-level evidence reinforces earlier regional findings:
+
+* Metropolitan centres, particularly Wellington City, experienced the most pronounced divergence between Education and Work travel.
+* Remote participation expanded far more strongly for Work than Education in large urban labour markets.
+* Smaller regional centres exhibit more moderate and heterogeneous modal adjustments.
+
+These results confirm that behavioural change is not only regionally differentiated but also strongly conditioned by local urban structure at the district/city level.
+
+
+
+### Change by Age Group (Education vs Work)
+
+This subsection examines age-specific differences in modal restructuring between 2018 and 2023. We first describe mode shares, followed by net percentage-point changes, and finally Education–Work divergence (difference-in-differences).
+
+
+
+#### Mode Shares by Age Group
+
+Mode shares for Education and Work across age groups are shown in **Figure X**.
+
+```{r fig-age_group_mode_share, echo=FALSE, fig.cap="Mode share by travel category and age group - Education and Work (2018 vs 2023)", fig.align='center', out.width="1.0\\linewidth", fig.pos='H'}
+knitr::include_graphics("../../figures/age_group_mode_share.png")
+```
+
+
+Modal structure varies systematically by age.
+
+For **Education**, younger groups show higher shares of Active and Public transport, whereas older cohorts rely more heavily on Private transport. By 2023, At-Home participation increases across all adult groups, particularly among 30–64 and Over-64 individuals.
+
+For **Work**, Private transport remains dominant in both years. However, At-Home participation rises noticeably by 2023, especially among 30–64 and Over-64 workers.
+
+
+#### Net Change in Mode Share (2018–2023)
+
+Percentage-point changes in mode shares by age group are reported in **Table A5 in the Appendix** and visualised in Figure Z and Figure AA.
+
+```{r fig-age_group_pp_change, echo=FALSE, fig.cap="Net Change in Education-Work Mode Share - Age Group and Travel Category", fig.align='center', out.width="1.0\\linewidth", fig.pos='H'}
+knitr::include_graphics("../../figures/age_group_pp_change.png")
+```
+
+**Education**
+
+Change is concentrated among adult cohorts:
+
+* **30–64 years**: At-Home increases sharply (+14.04 pp), with declines in Private (−8.38 pp), Public (−2.80 pp), and Active transport (−2.50 pp).
+* **Over 64 years**: At-Home rises (+13.79 pp) and Private transport declines markedly (−9.84 pp).
+* **15–29 years**: Moderate At-Home growth (+3.73 pp) with small reductions in Active and Public modes.
+* **Under 15 years**: Minimal change.
+
+**Work**
+
+Work exhibits similar directional shifts but smaller magnitudes:
+
+* **30–64 years**: At-Home increases (+7.69 pp), Private transport declines (−5.14 pp).
+* **Over 64 years**: At-Home rises (+4.69 pp), Private transport declines (−3.12 pp).
+* **15–29 years**: Moderate At-Home growth (+3.48 pp) with minor reductions elsewhere.
+
+
+
+#### Change in the Education-Work Gap
+
+Education-Work divergence by age group is illustrated in **Figure BB**, with numerical values reported in **Table A6 in the Appendix**.
+
+
+```{r fig-age_group_did, echo=FALSE, fig.cap="Change in Education-Work Mode Share Gap - Age Group and Travel Category", fig.align='center', out.width="1.0\\linewidth", fig.pos='H'}
+knitr::include_graphics("../../figures/age_group_did.png")
+```
+
+Difference-in-differences estimates show that divergence increases with age:
+
+* **30–64 years**: At-Home gap widens (+6.35 pp), indicating stronger Education growth relative to Work.
+* **Over 64 years**: The largest divergence is observed (+9.10 pp for At-Home).
+* Private transport declines more strongly in Education among older cohorts (−6.73 pp for Over 64).
+* **15–29 years**: Differences remain small (|DiD| < 1 pp), suggesting largely parallel change.
+
+
+
+**Summary**
+
+Behavioural restructuring is strongly age-conditioned.
+
+The largest shifts occur among **30–64 and Over-64 cohorts**, where At-Home participation expands and Private transport contracts. Education exhibits stronger remote participation growth than Work among older adults, producing widening Education–Work gaps. Younger cohorts show comparatively stable and parallel modal change.
+
+
+
+
+
+
+
+# References
+
+::: {#refs}
+:::
+
+
+\appendix
+\renewcommand{\thetable}{A\arabic{table}}
+\setcounter{table}{0}
+# Appendix A - R Code
+
+```{r edu-merge-sub-files-pipeline, include=FALSE}
+merge_edu_data_files <- function(files_dir, output_file) {
+
+  files <- list.files(files_dir, pattern = "\\.csv$", full.names = TRUE)
+
+  final_data <- tibble()
+
+  for (file in files) {
+
+    file_name <- tools::file_path_sans_ext(basename(file))
+    parts <- strsplit(file_name, "_")[[1]]
+
+    region   <- parts[1]
+    district <- parts[2]
+
+    raw_data <- read.csv(file)
+
+    delete_columns <- c(
+      "STRUCTURE", "STRUCTURE_ID", "STRUCTURE_NAME", "ACTION",
+      "CEN23_YEAR_001", "Observation.Value", "OBS_STATUS", "Observation.Status"
+    )
+
+    clean_data <- raw_data %>%
+      select(-any_of(delete_columns)) %>%
+      mutate(
+        Region   = region,
+        District = district,
+        OBS_VALUE = coalesce(OBS_VALUE, 0)  # replace NA with 0
+      )
+
+    # 1) Summarise gender totals per group (handles missing genders & duplicates)
+    gender_sums <- clean_data %>%
+      group_by(Census.year, CEN23_GEO_002, CEN23_TED_002, CEN23_AGE_003) %>%
+      summarise(
+        male   = sum(OBS_VALUE[CEN23_GEN_002 == 1],  na.rm = TRUE),
+        female = sum(OBS_VALUE[CEN23_GEN_002 == 2],  na.rm = TRUE),
+        total  = sum(OBS_VALUE[CEN23_GEN_002 == 99], na.rm = TRUE),
+        .groups = "drop"
+      )
+
+    # 2) Join back and compute "Another" (gender 3), then remove total row (99)
+    clean_data_filled <- clean_data %>%
+      left_join(
+        gender_sums,
+        by = c("Census.year", "CEN23_GEO_002", "CEN23_TED_002", "CEN23_AGE_003")
+      ) %>%
+      mutate(
+        OBS_VALUE = if_else(
+          CEN23_GEN_002 == 3,
+          pmax(total - male - female, 0),
+          OBS_VALUE
+        )
+      ) %>%
+      select(-male, -female, -total) %>%
+      filter(CEN23_GEN_002 != 99)
+
+    # append the corrected data (NOT the original clean_data)
+    final_data <- bind_rows(final_data, clean_data_filled)
+  }
+
+  final_data_sorted <- final_data %>%
+    arrange(
+      Census.year,
+      CEN23_GEO_002,
+      CEN23_TED_002,
+      CEN23_AGE_003,
+      CEN23_GEN_002
+    )
+
+  write.csv(final_data_sorted, output_file, row.names = FALSE)
+
+  invisible(final_data_sorted)
+}
+
+# edu_data <- merge_edu_data_files("../../data/raw/education", "../../data/interim/edu_data.csv")
+```
+
+
+```{r work-merge-sub-files-pipeline, include=FALSE}
+merge_work_data_files <- function(files_dir, output_file) {
+
+  files <- list.files(files_dir, pattern = "\\.csv$", full.names = TRUE)
+  final_data <- tibble()
+
+  for (file in files) {
+
+    file_name <- tools::file_path_sans_ext(basename(file))
+    parts <- strsplit(file_name, "_")[[1]]
+
+    region   <- parts[1]
+    district <- parts[2]
+
+    raw_data <- read.csv(file)
+
+    delete_columns <- c(
+      "STRUCTURE", "STRUCTURE_ID", "STRUCTURE_NAME", "ACTION",
+      "CEN23_YEAR_001", "CEN23_TOI_003", "Total.personal.income",
+      "Observation.Value", "OBS_STATUS"
+    )
+
+    clean_data <- raw_data %>%
+      select(-any_of(delete_columns)) %>%
+      mutate(
+        Region   = region,
+        District = district
+      )
+
+    gender_info <- clean_data %>%
+      group_by(Census.year, CEN23_GEO_002, CEN23_TWO_002, CEN23_AGE_008) %>%
+      summarise(
+        male_calc    = sum(coalesce(OBS_VALUE[CEN23_GEN_002 == 1],  0)),
+        female_calc  = sum(coalesce(OBS_VALUE[CEN23_GEN_002 == 2],  0)),
+        another_calc = sum(coalesce(OBS_VALUE[CEN23_GEN_002 == 3],  0)),
+        total_calc   = sum(coalesce(OBS_VALUE[CEN23_GEN_002 == 99], 0)),
+
+        male_conf_na = any(CEN23_GEN_002 == 1 & is.na(OBS_VALUE)
+                           & Observation.Status == "Confidential"),
+        female_conf_na = any(CEN23_GEN_002 == 2 & is.na(OBS_VALUE)
+                             & Observation.Status == "Confidential"),
+        .groups = "drop"
+      )
+
+    clean_data_filled <- clean_data %>%
+      left_join(
+        gender_info,
+        by = c("Census.year", "CEN23_GEO_002", "CEN23_TWO_002", "CEN23_AGE_008")
+      ) %>%
+      mutate(
+        OBS_VALUE = case_when(
+          CEN23_GEN_002 == 1 &
+            is.na(OBS_VALUE) &
+            Observation.Status == "Confidential" &
+            male_conf_na ~ pmax(total_calc - female_calc - another_calc, 0),
+
+          CEN23_GEN_002 == 2 &
+            !male_conf_na &
+            is.na(OBS_VALUE) &
+            Observation.Status == "Confidential" &
+            female_conf_na ~ pmax(total_calc - male_calc - another_calc, 0),
+
+          CEN23_GEN_002 == 3 &
+            !male_conf_na & !female_conf_na &
+            is.na(OBS_VALUE) ~ pmax(total_calc - male_calc - female_calc, 0),
+
+          TRUE ~ OBS_VALUE
+        )
+      ) %>%
+      select(
+        -male_calc, -female_calc, -another_calc,
+        -total_calc, -male_conf_na, -female_conf_na
+      )
+
+    final_data <- bind_rows(final_data, clean_data_filled)
+  }
+
+  # FINAL CLEANUP STEP (as requested)
+  final_data_sorted <- final_data %>%
+    filter(CEN23_GEN_002 != 99) %>%
+    select(-Observation.Status) %>%
+    arrange(
+      Census.year,
+      CEN23_GEO_002,
+      CEN23_TWO_002,
+      CEN23_AGE_008,
+      CEN23_GEN_002
+    )
+
+  write.csv(final_data_sorted, output_file, row.names = FALSE)
+
+  invisible(final_data_sorted)
+}
+
+# work_data <- merge_work_data_files("../../data/raw/work", "../../data/interim/work_data.csv")
+
+```
+
+```{r edu-transform-pipeline, include=FALSE}
+### transform the travel to education dataset
+
+transform_edu_data <- function(edu_data){
+  ## 1. Rename columns
+  edu_data <- edu_data %>%
+    rename(census_year = Census.year,
+           sa2_code = CEN23_GEO_002,
+           sa2 = Area,
+           mode_code = CEN23_TED_002,
+           mode = Main.means.of.travel.to.education,
+           age_group_code = CEN23_AGE_003,
+           age_group = Age,
+           gender_code = CEN23_GEN_002,
+           gender = Gender,
+           count = OBS_VALUE,
+           region = Region,
+           district = District
+           )
+  
+  
+  ## 2. Add travel_category column, by categorising the travel modes into 5 types
+  
+  edu_data <- edu_data %>%
+    mutate(
+      travel_category = case_when(
+        mode %in% c(
+          "Passenger in a car, truck or van",
+          "Drive a car, truck or van"
+        ) ~ "Private Transport",
+  
+        mode %in% c(
+          "Bicycle",
+          "Walk or jog"
+        ) ~ "Active Transport",
+  
+        mode %in% c(
+          "Public bus",
+          "Train",
+          "Ferry",
+          "School bus"
+        ) ~ "Public Transport",
+  
+        mode == "Study at home" ~ "At Home",
+  
+        mode == "Other" ~ "Other Transport",
+  
+        TRUE ~ NA_character_
+      )
+    )
+  
+  
+  ## 3. remove the Total - gender values as these are not needed
+  edu_data <- edu_data %>%
+    filter(gender != "Total - gender")
+  
+  
+  ## 4. replace the male female and other values in gender column
+  edu_data <- edu_data %>%
+    mutate(
+      gender = recode(gender,
+                      "Male / Tāne" = "Male",
+                      "Female / Wahine" = "Female",
+                      "Another gender / He ira kē anō" = "Other")
+    )
+  
+  
+  ## 5. Add journey_type column to indicate it is Journey to Education releated data
+  edu_data$journey_type <- "Education"
+  
+  ## 6. Reorder the columns
+  edu_data <- edu_data %>%
+    select(
+      journey_type,
+      census_year,
+      region,
+      district,
+      sa2_code,
+      sa2,
+      mode_code,
+      mode,
+      travel_category,
+      age_group_code,
+      age_group,
+      gender_code,
+      gender,     
+      count
+    )
+  
+  
+  ## 7. Replace NA in student_count to 0
+  
+  edu_data <- edu_data %>%
+    mutate(
+      count = coalesce(count, 0)
+    )
+  
+  
+  # 8. Rename the age groups from '65 years and over' to 'Over 64 years'
+  
+  edu_data <- edu_data %>%
+    mutate(
+      age_group = recode(age_group,
+                      "65 years and over" = "Over 64 years")
+    )
+  
+  # 9. UTF-8 encoding on region values
+  edu_data <- edu_data %>%
+    mutate(
+      region = recode(region,
+                      "Manawatū-Whanganui Region" = "Manawatu-Whanganui Regions",
+  		     "Manawatū–Whanganui Region"  = "Manawatu-Whanganui Regions")
+    )
+  
+  write.csv(edu_data, "../../data/transformed/edu_data_transformed.csv", row.names = FALSE)
+  
+  edu_data
+}
+
+# edu_data <- transform_edu_data(edu_data)
+
+```
+
+
+```{r work-transform-pipeline, include=FALSE}
+# transform the travel to work dataset
+transform_work_data <- function(work_data){
+  # 1. Rename columns
+  work_data <- work_data %>%
+    rename(census_year = Census.year,
+           sa2_code = CEN23_GEO_002,
+           sa2 = Area,
+           mode_code = CEN23_TWO_002,
+           mode = Main.means.of.travel.to.work,
+           age_group_code = CEN23_AGE_008,
+           age_group = Age,
+           gender_code = CEN23_GEN_002,
+           gender = Gender,
+           count = OBS_VALUE,
+           region = Region,
+           district = District
+           )
+  
+  # 2. Add work travel_category column, by categorising the travel modes into 5 types
+  
+  work_data <- work_data %>%
+    mutate(
+      travel_category = case_when(
+        mode == "Work at home" ~ "At Home",
+  
+        mode %in% c(
+          "Drive a private car, truck or van",
+          "Drive a company car, truck or van",
+          "Passenger in a car, truck, van or company bus"
+        ) ~ "Private Transport",
+  
+        mode %in% c(
+          "Public bus",
+          "Train",
+          "Ferry"
+        ) ~ "Public Transport",
+  
+        mode %in% c(
+          "Bicycle",
+          "Walk or jog"
+        ) ~ "Active Transport",
+  
+        mode %in% c(
+          "Did not go to work today",
+          "Other"
+        ) ~ "Other Transport",
+  
+        TRUE ~ NA_character_
+      )
+    )
+  
+  # 3. remove the Total - gender values as these are not needed
+  work_data <- work_data %>%
+    filter(gender != "Total - gender")
+
+  
+  # 4. replace the male femake and other values in gender column
+  work_data <- work_data %>%
+    mutate(
+      gender = recode(gender,
+                      "Male / Tāne" = "Male",
+                      "Female / Wahine" = "Female",
+                      "Another gender / He ira kē anō" = "Other")
+    )
+
+  # 5. Add journey_type column to indicate it is Journey to Education rleated data
+  work_data$journey_type <- "Work"
+
+  
+  # 6. Reoder the columns
+  work_data <- work_data %>%
+    select(
+      journey_type,
+      census_year,
+      region,
+      district,
+      sa2_code,
+      sa2,
+      mode_code,
+      mode,
+      travel_category,
+      age_group_code,
+      age_group,
+      gender_code,
+      gender,     
+      count
+    )
+  
+
+  # 7. Replace NA in employee_count to 0
+  
+  work_data <- work_data %>%
+    mutate(
+      count = coalesce(count, 0)
+    )
+  
+
+  # 8. Rename the age groups from '65 years and over' to 'Over 64 years'
+  
+  work_data <- work_data %>%
+    mutate(
+      age_group = recode(age_group,
+                      "65 years and over" = "Over 64 years")
+    )
+
+  # 9. UTF-8 encoding on region values
+  unique(work_data$region)
+  work_data <- work_data %>%
+    mutate(
+      region = recode(region,
+                      "Manawatū-Whanganui Region" = "Manawatu-Whanganui Regions",
+  		     "Manawatū–Whanganui Region" = "Manawatu-Whanganui Regions")
+    )
+  
+  write.csv(work_data, "../../data/transformed/work_data_transformed.csv", row.names = FALSE)
+  
+  work_data
+}
+
+# work_data <- transform_work_data(work_data)
+```
+
+
+```{r edu-work-merge-datasets, include=FALSE}
+# Merge the Education and Work datasets
+
+# edu_work_data <- bind_rows(edu_data, work_data)
+# 
+# write.csv(edu_work_data, "../../data/edu_work/edu_work_data.csv", row.names = FALSE)
+```
+
+
+```{r edu-work-load-merged-data, include=FALSE}
+edu_work_data <- read.csv("../../data/edu_work/edu_work_data.csv")
+```
+
+
+```{r record-counts-by-journey-type-census-year, include=FALSE}
+
+
+val_counts_by_journey_year <- edu_work_data %>%
+  count(journey_type, census_year)
+
+pander(
+  val_counts_by_journey_year,
+  caption = "Record counts by journey type and census year"
+)
+
+
+```
+
+```{r record-counts-by-journey-type-travel-category, include=FALSE}
+
+
+val_years_by_category <- edu_work_data %>%
+  group_by(journey_type, travel_category) %>%
+  summarise(
+    Census_Years_Represented = paste(sort(unique(census_year)), collapse = ", "),
+    .groups = "drop"
+  )
+
+pander(
+  val_years_by_category,
+  caption = "Structural validation of harmonised travel categories across journey types and Census years in the merged analytical dataset"
+)
+
+
+```
+
+
+
+```{r record-counts-by-census-year, include=FALSE}
+val_counts_by_year <- edu_work_data %>%
+  count(census_year)
+
+pander(
+  val_counts_by_year,
+  caption = "Record counts by census year"
+)
+
+```
+
+
+```{r include=FALSE}
+val_missingness <- edu_work_data %>%
+  summarise(
+    missing_travel_category = sum(is.na(travel_category)),
+    missing_count           = sum(is.na(count))
+  )
+
+pander(
+  val_missingness,
+  caption = "Missing value summary for key variables"
+)
+
+```
+
+
+```{r include=FALSE}
+edu_totals <- edu_work_data %>%
+  filter(journey_type == "Education") %>%
+  group_by(census_year) %>%
+  summarise(
+    total_count = sum(count, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+pander(edu_totals,
+         caption = "Total Journey to Education population counts by census year (2018 and 2023)"
+)
+
+```
+
+
+
+```{r include=FALSE}
+obs_counts <- edu_work_data %>%
+  group_by(journey_type, census_year) %>%
+  summarise(total_count = sum(count, na.rm = TRUE), .groups = "drop")
+
+pander(
+  obs_counts,
+  caption = "Overall observation counts by journey type and census year"
+)
+```
+
+
+
+```{r include=FALSE}
+
+dim_coverage <- edu_work_data %>%
+  summarise(
+    n_rows               = n(),
+    n_journey_types      = n_distinct(journey_type),
+    n_years              = n_distinct(census_year),
+    n_regions            = n_distinct(region),
+    n_districts          = n_distinct(district),
+    n_sa2_names           = n_distinct(sa2),
+    n_age_groups         = n_distinct(age_group),
+    n_travel_categories  = n_distinct(travel_category),
+    n_modes              = n_distinct(mode)
+  )
+
+pander(
+  dim_coverage,
+  caption = "Dataset dimensionality and overall coverage across key analytical variables"
+)
+```
+
+
+
+```{r include=FALSE}
+dim_coverage_by_journey <- edu_work_data %>%
+  group_by(journey_type) %>%
+  summarise(
+    n_rows               = n(),
+    n_years              = n_distinct(census_year),
+    n_regions            = n_distinct(region),
+    n_districts          = n_distinct(district),
+    n_age_groups         = n_distinct(age_group),
+    n_travel_categories  = n_distinct(travel_category),
+    n_modes              = n_distinct(mode),
+    .groups = "drop"
+  )
+
+pander(
+  dim_coverage_by_journey,
+  caption = "Structural coverage of key analytical dimensions by journey type"
+)
+
+```
+
+
+```{r include=FALSE}
+level_inspection <- tibble(
+  Variable = c("Journey Type", "Census Year", "Travel Category", "Age Group", "Gender"),
+  Levels = c(
+    paste(sort(unique(edu_work_data$journey_type)), collapse = ", "),
+    paste(sort(unique(edu_work_data$census_year)), collapse = ", "),
+    paste(sort(unique(edu_work_data$travel_category)), collapse = ", "),
+    paste(sort(unique(edu_work_data$age_group)), collapse = ", "),
+    paste(sort(unique(edu_work_data$gender)), collapse = ", ")
+  )
+)
+
+pander(
+  level_inspection,
+  caption = "Observed levels of key categorical variables after data harmonisation"
+)
+
+```
+
+
+```{r include=FALSE}
+cat_totals_shares <- edu_work_data %>%
+  group_by(journey_type, travel_category) %>%
+  summarise(total_count = sum(count, na.rm = TRUE), .groups = "drop") %>%
+  group_by(journey_type) %>%
+  mutate(
+    share_pct = round(100 * total_count / sum(total_count), 2)
+  ) %>%
+  ungroup() %>%
+  arrange(journey_type, desc(total_count))
+
+pander(
+  cat_totals_shares,
+  caption = "Distribution of counts and percentage shares across travel
+  categories within each journey type (pre-analysis sanity check)"
+)
+
+```
+
+
+
+```{r include=FALSE}
+year_comp <- edu_work_data %>%
+  filter(census_year %in% c(2018, 2023)) %>%
+  group_by(journey_type, census_year, travel_category) %>%
+  summarise(count = sum(count, na.rm = TRUE), .groups = "drop") %>%
+  group_by(journey_type, census_year) %>%
+  mutate(
+    share_pct = round(100 * count / sum(count), 2)
+  ) %>%
+  ungroup()
+
+pander(
+  year_comp,
+  caption = "Year-wise travel-category composition (percentage shares) by journey type"
+)
+
+```
+
+
+```{r include=FALSE}
+zero_missing_diag <- edu_work_data %>%
+  summarise(
+    zero_counts         = sum(count == 0, na.rm = TRUE),
+    missing_counts      = sum(is.na(count)),
+    missing_categories  = sum(is.na(travel_category))
+  )
+
+pander(
+  zero_missing_diag,
+  caption = "Diagnostics for zero values and missingness in key analytical variables"
+)
+
+```
+
+
+```{r include=FALSE}
+
+unmapped_modes <- edu_work_data %>%
+  filter(is.na(travel_category)) %>%
+  distinct(journey_type, mode) %>%
+  arrange(journey_type, mode)
+
+unmapped_modes
+
+```
+
+
+
+
+```{r shares_nz_object, include=FALSE}
+shares_nz <- edu_work_data %>%
+  group_by(journey_type, census_year, travel_category) %>%
+  summarise(count = sum(count, na.rm = TRUE), .groups = "drop") %>%
+  group_by(journey_type, census_year) %>%
+  mutate(
+    share_pct = round(100 * count / sum(count), 2)
+  ) %>%
+  ungroup()
+
+pander(
+  shares_nz,
+  caption = "National travel mode shares (%) by journey type and census year"
+)
+
+```
+
+
+```{r include=FALSE}
+pp_change_nz <- shares_nz %>%
+  select(journey_type, census_year, travel_category, share_pct) %>%
+  pivot_wider(
+    id_cols      = c(journey_type, travel_category),
+    names_from   = census_year,
+    values_from  = share_pct,
+    names_prefix = "y"
+  ) %>%
+  mutate(
+    y2018 = round(y2018, 2),
+    y2023 = round(y2023, 2),
+    pp_change_2018_2023 = round(y2023 - y2018, 2)
+  ) %>%
+  arrange(journey_type, travel_category)
+
+pander(
+  pp_change_nz,
+  caption = "Percentage-point change in national travel mode shares between
+  2018 and 2023, by journey type"
+)
+
+```
+```{r edu_work_travel_mode_share_pp_nz, include=FALSE}
+mode_share_pp_nz <- shares_nz %>%
+  select(journey_type, census_year, travel_category, share_pct) %>%
+  mutate(census_year = paste0("y", census_year)) %>%
+  pivot_wider(
+    id_cols     = travel_category,
+    names_from  = c(journey_type, census_year),
+    values_from = share_pct
+  ) %>%
+  mutate(
+    across(where(is.numeric), ~ round(.x, 2))
+  ) %>%
+  arrange(travel_category) %>%
+  rename(
+    "Travel Category" = travel_category,
+    "Education 2018 (%)" = Education_y2018,
+    "Education 2023 (%)" = Education_y2023,
+    "Work 2018 (%)"      = Work_y2018,
+    "Work 2023 (%)"      = Work_y2023
+  )
+
+mode_share_pp_nz %>%
+  kable(
+    format   = "latex",
+    booktabs = TRUE,
+    caption  = "National travel mode share (\\%) in 2018 and 2023, shown separately for Education and Work journeys",
+    escape   = TRUE
+  ) %>%
+  kable_styling(latex_options = c("hold_position", "scale_down"))
+```
+
+
+```{r edu_work_pp_change_2023_minus_2018, include=FALSE}
+
+mode_share_pp_nz <- shares_nz %>%
+  select(journey_type, census_year, travel_category, share_pct) %>%
+  mutate(census_year = paste0("y", census_year)) %>%
+  pivot_wider(
+    id_cols     = travel_category,
+    names_from  = c(journey_type, census_year),
+    values_from = share_pct
+  ) %>%
+  mutate(
+    Education_pp_change = Education_y2023 - Education_y2018,
+    Work_pp_change      = Work_y2023 - Work_y2018
+  ) %>%
+  select(
+    travel_category,
+    Education_pp_change,
+    Work_pp_change
+  ) %>%
+  mutate(
+    across(where(is.numeric), ~ round(.x, 2))
+  ) %>%
+  arrange(travel_category) %>%
+  rename(
+    "Travel Category" = travel_category,
+    "Education (pp change 2018–2023)" = Education_pp_change,
+    "Work (pp change 2018–2023)"      = Work_pp_change
+  ) 
+
+mode_share_pp_nz %>%
+  kable(
+    format   = "latex",
+    booktabs = TRUE,
+    caption  = "Percentage-point change in national travel mode share between 2018 and 2023, by journey type",
+    escape   = TRUE
+  ) %>%
+  kable_styling(latex_options = c("hold_position", "scale_down"))
+```
+
+
+```{r include=FALSE}
+dup_check <- shares_nz %>%
+  count(journey_type, census_year, travel_category) %>%
+  filter(n > 1)
+
+dup_check
+
+```
+
+
+
+```{r include=FALSE}
+
+did_nz <- pp_change_nz %>%
+  select(journey_type, travel_category, pp_change_2018_2023) %>%
+  pivot_wider(names_from = journey_type, values_from = pp_change_2018_2023) %>%
+  mutate(
+    diff_in_diff_pp = round(Education - Work, 2)
+  ) %>%
+  arrange(travel_category)
+
+pander(
+  did_nz,
+  caption = "Descriptive difference-in-differences: Education vs Work
+  percentage-point shifts (2018–2023), by travel category"
+)
+
+```
+
+```{r edu_work_share_did, include=FALSE}
+
+did_nz <- shares_nz %>%
+  select(journey_type, census_year, travel_category, share_pct) %>%
+  pivot_wider(
+    id_cols     = c(journey_type, travel_category),
+    names_from  = census_year,
+    values_from = share_pct,
+    names_prefix = "y"
+  ) %>%
+  mutate(
+    pp_change_2018_2023 = y2023 - y2018
+  ) %>%
+  select(journey_type, travel_category, pp_change_2018_2023) %>%
+  pivot_wider(
+    names_from  = journey_type,
+    values_from = pp_change_2018_2023
+  ) %>%
+  mutate(
+    diff_in_diff_pp = Education - Work
+  ) %>%
+  mutate(across(where(is.numeric), ~ round(.x, 2))) %>%
+  arrange(travel_category) %>%
+  rename(
+    "Travel Category"                 = travel_category,
+    "Education (pp change 2018–2023)" = Education,
+    "Work (pp change 2018–2023)"      = Work,
+    "DiD (Education − Work, pp)"      = diff_in_diff_pp
+  )
+
+did_nz %>%
+  kable(
+    format   = "latex",
+    booktabs = TRUE,
+    caption  = "Descriptive difference-in-differences: Education vs Work percentage-point shifts (2018–2023), by travel category",
+    escape   = TRUE
+  ) %>%
+  kable_styling(latex_options = c("HOLD_position", "scale_down"))
+
+```
+
+
+
+
+```{r test_time_shift_funtion, include=FALSE}
+
+test_time_shift <- function(df_one_journey) {
+
+  tab <- df_one_journey %>%
+    filter(census_year %in% c(2018, 2023)) %>%
+    group_by(census_year, travel_category) %>%
+    summarise(n = sum(count, na.rm = TRUE), .groups = "drop") %>%
+    pivot_wider(names_from = travel_category, values_from = n, values_fill = 0) %>%
+    arrange(census_year)
+
+  mat <- as.matrix(tab %>% select(-census_year))
+  rownames(mat) <- tab$census_year
+
+  out <- chisq.test(mat, correct = FALSE)
+
+  list(table = mat, test = out)
+}
+
+res_edu_time  <- edu_work_data %>% filter(journey_type == "Education") %>% test_time_shift()
+res_work_time <- edu_work_data %>% filter(journey_type == "Work") %>% test_time_shift()
+
+# tested contingency tables
+res_edu_time$table
+res_work_time$table
+```
+
+```{r edu_chi-square_test_tbl, include=FALSE}
+
+edu_test_tbl <- tibble(
+  `Journey Type` = "Education",
+  Statistic      = "Chi-square",
+  Value          = round(unname(res_edu_time$test$statistic), 0),
+  df             = unname(res_edu_time$test$parameter),
+  p_value        = format.pval(res_edu_time$test$p.value, digits = 3, eps = 1e-16)
+)
+
+edu_test_tbl %>%
+  kable(
+    format   = "latex",
+    booktabs = TRUE,
+    caption  = "Pearson chi-square test for time-based changes in travel mode distribution (Education)",
+    escape   = TRUE
+  ) %>%
+  kable_styling(latex_options = c("HOLD_position", "scale_down"))
+```
+
+```{r work_chi-square_test_tbl, include=FALSE}
+
+library(kableExtra)
+
+work_test_tbl <- tibble(
+  `Journey Type` = "Work",
+  Statistic      = "Chi-square",
+  Value          = round(unname(res_work_time$test$statistic), 0),
+  df             = unname(res_work_time$test$parameter),
+  p_value        = format.pval(res_work_time$test$p.value, digits = 3, eps = 1e-16)
+)
+
+work_test_tbl %>%
+  kable(
+    format   = "latex",
+    booktabs = TRUE,
+    caption  = "Pearson chi-square test for time-based changes in travel mode distribution (Work)",
+    escape   = TRUE
+  ) %>%
+  kable_styling(latex_options = c("HOLD_position", "scale_down"))
+
+```
+
+
+```{r include=FALSE}
+
+chi_summary <- tibble(
+  Journey = c("Education", "Work"),
+  Chi_square = c(
+    unname(res_edu_time$test$statistic),
+    unname(res_work_time$test$statistic)
+  ),
+  df = c(
+    unname(res_edu_time$test$parameter),
+    unname(res_work_time$test$parameter)
+  ),
+  p_value = c(
+    res_edu_time$test$p.value,
+    res_work_time$test$p.value
+  )
+) %>%
+  mutate(
+    Chi_square = round(Chi_square, 0),
+    p_value_fmt = format.pval(p_value, digits = 3, eps = 1e-16)
+  ) %>%
+  select(Journey, Chi_square, df, p_value_fmt)
+
+pander(
+  chi_summary,
+  caption = "Summary of within-journey chi-square tests comparing travel mode distributions between 2018 and 2023"
+)
+
+```
+
+
+
+```{r shift_tab_function, include=FALSE}
+shift_tab <- edu_work_data %>%
+  filter(census_year %in% c(2018, 2023)) %>%
+  group_by(journey_type, census_year, travel_category) %>%
+  summarise(n = sum(count, na.rm = TRUE), .groups = "drop") %>%
+  pivot_wider(names_from = census_year, values_from = n, names_prefix = "y", values_fill = 0) %>%
+  mutate(delta = y2023 - y2018) %>%
+  select(journey_type, travel_category, delta) %>%
+  pivot_wider(names_from = travel_category, values_from = delta, values_fill = 0)
+
+pander(shift_tab,
+       caption = "Category-wise changes in travel counts between 2018 and
+       2023 (2023 − 2018), by journey type"
+)
+
+```
+
+
+ 
+```{r chisq_shift_tbl, include=FALSE}
+
+shift_mat <- as.matrix(shift_tab %>% select(-journey_type))
+rownames(shift_mat) <- shift_tab$journey_type
+
+chisq_shift <- chisq.test(abs(shift_mat))
+
+chisq_shift_tbl <- tibble(
+  Test       = "Pearson's chi-squared test",
+  Chi_square = round(unname(chisq_shift$statistic), 0),
+  df         = unname(chisq_shift$parameter),
+  p_value    = format.pval(chisq_shift$p.value, digits = 3, eps = 1e-16)
+)
+
+chisq_shift_tbl %>%
+  kable(
+    format   = "latex",
+    booktabs = TRUE,
+    caption  = "Pearson’s chi-squared test comparing the magnitude of category-wise change profiles between Education and Work (2018–2023)",
+    escape   = TRUE
+  ) %>%
+  kable_styling(latex_options = c("HOLD_position", "scale_down"))
+```
+
+
+
+
+```{r test_edu_vs_work_by_year_funcion, include=FALSE}
+test_edu_vs_work_by_year <- function(data, year_value) {
+
+  tab <- data %>%
+    filter(census_year == year_value) %>%
+    group_by(journey_type, travel_category) %>%
+    summarise(n = sum(count, na.rm = TRUE), .groups = "drop") %>%
+    pivot_wider(
+      names_from  = travel_category,
+      values_from = n,
+      values_fill = 0
+    ) %>%
+    arrange(journey_type)
+
+  mat <- as.matrix(tab %>% select(-journey_type))
+  rownames(mat) <- tab$journey_type
+
+  list(
+    table = mat,
+    test  = chisq.test(mat)
+  )
+}
+
+```
+
+
+
+
+```{r chi_edu_work_2018, include=FALSE}
+
+res_edu_work_2018 <- test_edu_vs_work_by_year(edu_work_data, 2018)
+
+chi_edu_work_2018 <- tibble(
+  `Census Year` = 2018,
+  Test          = "Pearson's chi-squared test",
+  Chi_square    = round(unname(res_edu_work_2018$test$statistic), 0),
+  df            = unname(res_edu_work_2018$test$parameter),
+  p_value       = format.pval(res_edu_work_2018$test$p.value, digits = 3, eps = 1e-16)
+)
+
+chi_edu_work_2018 %>%
+  kable(
+    format   = "latex",
+    booktabs = TRUE,
+    caption  = "Pearson’s chi-squared test comparing Education and Work travel mode distributions in 2018",
+    escape   = TRUE
+  ) %>%
+  kable_styling(latex_options = c("HOLD_position", "scale_down"))
+
+```
+
+
+```{r chi_edu_work_2023,include=FALSE}
+
+res_edu_work_2023 <- test_edu_vs_work_by_year(edu_work_data, 2023)
+
+chi_edu_work_2023 <- tibble(
+  `Census Year` = 2023,
+  Test          = "Pearson's chi-squared test",
+  Chi_square    = round(unname(res_edu_work_2023$test$statistic), 0),
+  df            = unname(res_edu_work_2023$test$parameter),
+  p_value       = format.pval(res_edu_work_2023$test$p.value, digits = 3, eps = 1e-16)
+)
+
+chi_edu_work_2023 %>%
+  kable(
+    format   = "latex",
+    booktabs = TRUE,
+    caption  = "Pearson’s chi-squared test comparing Education and Work travel mode distributions in 2023",
+    escape   = TRUE
+  ) %>%
+  kable_styling(latex_options = c("HOLD_position", "scale_down"))
+
+
+```
+
+
+```{r cramers_v_tbl, include=FALSE}
+
+cramers_v_2018 <- rcompanion::cramerV(res_edu_work_2018$table)
+cramers_v_2023 <- rcompanion::cramerV(res_edu_work_2023$table)
+
+cramers_v_tbl <- tibble(
+  `Census Year` = c(2018, 2023),
+  `Cramér’s V`  = round(c(cramers_v_2018, cramers_v_2023), 4)
+)
+
+cramers_v_tbl %>%
+  kable(
+    format   = "latex",
+    booktabs = TRUE,
+    caption  = "Cramér’s V effect size for the association between journey type and travel category (Education vs Work), by census year",
+    escape   = TRUE
+  ) %>%
+  kable_styling(latex_options = c("HOLD_position", "scale_down"))
+
+```
+
+
+```{r include=FALSE}
+chi_edu_work_summary <- tibble(
+  Census_Year = c(2018, 2023),
+  Chi_square  = c(
+    unname(res_edu_work_2018$test$statistic),
+    unname(res_edu_work_2023$test$statistic)
+  ),
+  df = c(
+    unname(res_edu_work_2018$test$parameter),
+    unname(res_edu_work_2023$test$parameter)
+  ),
+  p_value = c(
+    res_edu_work_2018$test$p.value,
+    res_edu_work_2023$test$p.value
+  ),
+  Cramers_V = c(
+    cramers_v_2018,
+    cramers_v_2023
+  )
+) %>%
+  mutate(
+    Chi_square = round(Chi_square, 0),
+    Cramers_V  = round(Cramers_V, 3),
+    p_value_fmt = format.pval(p_value, digits = 3, eps = 1e-16)
+  ) %>%
+  select(Census_Year, Chi_square, df, p_value_fmt, Cramers_V)
+
+pander(
+  chi_edu_work_summary,
+  caption = "Summary of Education vs Work travel mode differences by census
+  year: chi-square tests and Cramér’s V effect sizes"
+)
+```
+
+
+
+
+```{r model_data_function, include=FALSE}
+
+model_data <- edu_work_data %>%
+  filter(census_year %in% c(2018, 2023)) %>%
+  group_by(journey_type, census_year, travel_category) %>%
+  summarise(n = sum(count, na.rm = TRUE), .groups = "drop") %>%
+  mutate(
+    year = factor(census_year),
+    journey_type = factor(journey_type),
+    travel_category = factor(travel_category) %>% droplevels()
+  )
+
+pander(model_data, 
+         caption = "Aggregated Census counts for multinomial modelling,
+       by journey type, census year, and travel category"
+)
+
+```
+
+
+
+```{r multinomial_logistic_regression_model_funtion, include=FALSE}
+baseline_mode <- "Private Transport"
+
+model_data <- edu_work_data %>%
+  filter(census_year %in% c(2018, 2023),
+         journey_type %in% c("Education", "Work")) %>%
+  mutate(
+    census_year = factor(census_year),
+    journey_type = factor(journey_type),
+    travel_category = factor(travel_category)
+  )
+
+# Set baseline for travel_category (reference outcome)
+if (baseline_mode %in% levels(model_data$travel_category)) {
+  model_data$travel_category <- relevel(model_data$travel_category, ref = baseline_mode)
+} else {
+  warning("Baseline travel_category not found. Check the exact level names in travel_category.")
+  print(levels(model_data$travel_category))
+}
+
+model_data$census_year  <- relevel(model_data$census_year, ref = "2018")
+model_data$journey_type <- relevel(model_data$journey_type, ref = "Work")
+
+
+m0 <- nnet::multinom(travel_category ~ census_year + journey_type,
+                     weights = count, data = model_data, trace = FALSE)
+
+m1 <- nnet::multinom(travel_category ~ census_year * journey_type,
+                     weights = count, data = model_data, trace = FALSE)
+
+lrt <- anova(m0, m1, test = "Chisq")
+
+```
+```{r lrt_multinomial_model, include=FALSE}
+lrt %>%
+  kable(
+    format   = "latex",
+    booktabs = TRUE,
+    caption  = "Likelihood ratio tests of multinomial models",
+    escape   = TRUE
+  ) %>%
+  kable_styling(latex_options = c("HOLD_position", "scale_down"))
+
+```
+
+
+```{r include=FALSE}
+
+### Likelihood-ratio test for Year × Journey Type interaction
+
+p <- lrt$`Pr(Chi)`[2]
+format.pval(p, digits = 3, eps = 1e-16)
+```
+
+```{r likelihood-ratio_test, include=FALSE}
+
+lr_stat <- 2 * (logLik(m1) - logLik(m0))
+df_diff <- attr(logLik(m1), "df") - attr(logLik(m0), "df")
+p_val   <- pchisq(lr_stat, df = df_diff, lower.tail = FALSE)
+
+lr_tbl <- tibble(
+  `Likelihood Ratio Statistic` = round(as.numeric(lr_stat), 0),
+  df                            = df_diff,
+  p_value                       = format.pval(p_val, digits = 3, eps = 1e-16)
+)
+
+lr_tbl %>%
+  kable(
+    format   = "latex",
+    booktabs = TRUE,
+    caption  = "Likelihood-ratio test for the Year × Journey Type interaction in the multinomial logistic regression model",
+    escape   = TRUE
+  ) %>%
+  kable_styling(latex_options = c("HOLD_position", "scale_down"))
+
+```
+
+
+
+```{r include=FALSE}
+
+# Define the category set
+cat_levels <- c("Private Transport", "Public Transport",
+                "Active Transport", "At Home", "Other Transport")
+
+# Build prediction grid
+pred_grid <- tidyr::expand_grid(
+  census_year  = factor(c(2018, 2023), levels = levels(model_data$census_year)),
+  journey_type = factor(c("Education", "Work"), levels = levels(model_data$journey_type))
+)
+
+# Predict probabilities
+pred_probs_wide <- predict(m1, newdata = pred_grid, type = "probs") %>%
+  as_tibble()
+
+missing_cats <- setdiff(cat_levels, names(pred_probs_wide))
+if (length(missing_cats) > 0) {
+  stop("These categories are missing from predicted probabilities: ",
+       paste(missing_cats, collapse = ", "),
+       "\nCheck levels(model_data$travel_category).")
+}
+
+pred_probs <- pred_probs_wide %>%
+  dplyr::select(dplyr::all_of(cat_levels)) %>%
+  dplyr::bind_cols(pred_grid) %>%
+  tidyr::pivot_longer(
+    cols      = dplyr::all_of(cat_levels),
+    names_to  = "travel_category",
+    values_to = "prob"
+  ) %>%
+  dplyr::mutate(prob_pct = round(100 * prob, 2))
+
+# Percentage-point change from 2018 to 2023 
+pred_pp <- pred_probs %>%
+  dplyr::select(journey_type, census_year, travel_category, prob_pct) %>%
+  tidyr::pivot_wider(
+    names_from  = census_year,
+    values_from = prob_pct,
+    names_prefix = "y"
+  ) %>%
+  dplyr::mutate(pp_change_2018_2023 = y2023 - y2018) %>%
+  dplyr::arrange(
+  factor(journey_type, levels = c("Education", "Work")),
+  travel_category
+)
+
+pander(
+  pred_pp,
+  caption = "Model-based predicted travel mode shares (%) in 2018 and 2023,
+  and percentage-point change (2023 - 2018), by journey type and travel category"
+)
+
+```
+
+
+```{r pred_pp_edu_table, include=FALSE}
+
+# Define the category set
+cat_levels <- c("Private Transport", "Public Transport",
+                "Active Transport", "At Home", "Other Transport")
+
+# Build prediction grid
+pred_grid <- tidyr::expand_grid(
+  census_year  = factor(c(2018, 2023), levels = levels(model_data$census_year)),
+  journey_type = factor(c("Education", "Work"), levels = levels(model_data$journey_type))
+)
+
+# Predict probabilities
+pred_probs_wide <- predict(m1, newdata = pred_grid, type = "probs") %>%
+  as_tibble()
+
+missing_cats <- setdiff(cat_levels, names(pred_probs_wide))
+if (length(missing_cats) > 0) {
+  stop("These categories are missing from predicted probabilities: ",
+       paste(missing_cats, collapse = ", "),
+       "\nCheck levels(model_data$travel_category).")
+}
+
+pred_probs <- pred_probs_wide %>%
+  dplyr::select(dplyr::all_of(cat_levels)) %>%
+  dplyr::bind_cols(pred_grid) %>%
+  tidyr::pivot_longer(
+    cols      = dplyr::all_of(cat_levels),
+    names_to  = "travel_category",
+    values_to = "prob"
+  ) %>%
+  dplyr::mutate(prob_pct = round(100 * prob, 2))
+
+# Percentage-point change from 2018 to 2023
+pred_pp <- pred_probs %>%
+  dplyr::select(journey_type, census_year, travel_category, prob_pct) %>%
+  tidyr::pivot_wider(
+    names_from   = census_year,
+    values_from  = prob_pct,
+    names_prefix = "y"
+  ) %>%
+  dplyr::mutate(`PP change (2023 − 2018)` = round(y2023 - y2018, 2)) %>%
+  dplyr::rename(
+    `Travel Category` = travel_category,
+    `Predicted share 2018 (%)` = y2018,
+    `Predicted share 2023 (%)` = y2023
+  ) %>%
+  dplyr::arrange(`Travel Category`)
+
+pred_pp_edu <- pred_pp %>%
+  dplyr::filter(journey_type == "Education") %>%
+  dplyr::select(-journey_type)
+
+pred_pp_edu %>%
+  kable(
+    format   = "latex",
+    booktabs = TRUE,
+    caption  = "Model-based predicted travel mode shares (\\%) in 2018 and 2023 and percentage-point change (2023 − 2018): Education",
+    escape   = TRUE
+  ) %>%
+  kable_styling(latex_options = c("HOLD_position", "scale_down"))
+
+```
+
+
+```{r pred_pp_work_table, include=FALSE}
+pred_pp_work <- pred_pp %>%
+  dplyr::filter(journey_type == "Work") %>%
+  dplyr::select(-journey_type)
+
+pred_pp_work %>%
+  kable(
+    format   = "latex",
+    booktabs = TRUE,
+    caption  = "Model-based predicted travel mode shares (\\%) in 2018 and 2023 and percentage-point change (2023 − 2018): Work",
+    escape   = TRUE
+  ) %>%
+  kable_styling(latex_options = c("HOLD_position", "scale_down"))
+```
+
+
+
+
+
+```{r region-wise_pearson_chi-square_tests, include=FALSE}
+# Helper function: run region-wise chi-square tests for a given journey type
+region_chisq_by_journey <- function(data, journey_label) {
+
+  data %>%
+    filter(journey_type == journey_label, census_year %in% c(2018, 2023)) %>%
+    group_by(region) %>%
+    group_map(~{
+      tab <- .x %>%
+        group_by(census_year, travel_category) %>%
+        summarise(n = sum(count, na.rm = TRUE), .groups = "drop") %>%
+        pivot_wider(names_from = travel_category, values_from = n, values_fill = 0) %>%
+        arrange(census_year)
+
+      mat <- as.matrix(tab %>% select(-census_year))
+      rownames(mat) <- tab$census_year
+
+      tst <- suppressWarnings(chisq.test(mat))
+
+      tibble(
+        region    = .y$region,
+        statistic = unname(tst$statistic),
+        df        = unname(tst$parameter),
+        p_value   = unname(tst$p.value)
+      )
+    }) %>%
+    bind_rows()
+}
+
+# Education tests
+region_tests_edu <- region_chisq_by_journey(edu_work_data, "Education") %>%
+  rename(
+    edu_statistic = statistic,
+    edu_df        = df,
+    edu_p_value   = p_value
+  )
+
+# Work tests
+region_tests_work <- region_chisq_by_journey(edu_work_data, "Work") %>%
+  rename(
+    work_statistic = statistic,
+    work_df        = df,
+    work_p_value   = p_value
+  )
+
+# Combine into one table
+region_tests_edu_work <- region_tests_edu %>%
+  full_join(region_tests_work, by = "region") %>%
+  arrange(pmin(edu_p_value, work_p_value, na.rm = TRUE))
+
+# Print
+region_tests_edu_work %>%
+  mutate(
+    edu_statistic  = formatC(edu_statistic,  format = "f", digits = 2),
+    edu_p_value    = formatC(edu_p_value,    format = "e", digits = 2),
+    work_statistic = formatC(work_statistic, format = "f", digits = 2),
+    work_p_value   = formatC(work_p_value,   format = "e", digits = 2)
+  ) %>%
+  select(region,
+         edu_statistic, edu_df, edu_p_value,
+         work_statistic, work_df, work_p_value) %>%
+  rename(
+    Region                = region,
+    `Edu chi_sq`    = edu_statistic,
+    `Edu df`        = edu_df,
+    `Edu p-value`   = edu_p_value,
+    `Work chi_sq`         = work_statistic,
+    `Work df`             = work_df,
+    `Work p-value`        = work_p_value
+  ) %>%
+  kable(
+    format    = "latex",
+    booktabs  = TRUE,
+    longtable = TRUE,
+    caption   = "Region-wise Pearson chi-square tests of homogeneity for changes in travel mode distributions between 2018 and 2023"
+  ) %>%
+  kable_styling(
+    latex_options = c("repeat_header", "hold_position"),
+    font_size = 9
+  )
+```
+
+
+```{r regional_mode_shares_edu_work, include=TRUE}
+
+region_mode_share_pp <- edu_work_data %>%
+  filter(census_year %in% c(2018, 2023)) %>%
+  group_by(region, journey_type, census_year, travel_category) %>%
+  summarise(n = sum(count, na.rm = TRUE), .groups = "drop") %>%
+  group_by(region, journey_type, census_year) %>%
+  mutate(
+    total_year = sum(n, na.rm = TRUE),
+    share_pct  = 100 * n / total_year
+  ) %>%
+  ungroup() %>%
+  select(region, journey_type, census_year, travel_category, share_pct) %>%
+  pivot_wider(
+    names_from   = census_year,
+    values_from  = share_pct,
+    names_prefix = "y"
+  ) %>%
+  mutate(
+    pp_change_2018_2023 = y2023 - y2018
+  ) %>%
+  mutate(across(c(y2018, y2023, pp_change_2018_2023), ~ round(.x, 2))) %>%
+  arrange(journey_type, region, travel_category) %>%
+  rename(
+    Region                 = region,
+    `Journey Type`         = journey_type,
+    `Travel Category`      = travel_category,
+    `2018 (%)`  = y2018,
+    `2023 (%)`  = y2023,
+    `PP change (2023−2018)`= pp_change_2018_2023
+  )
+
+```
+```{r}
+
+region_mode_share_pp %>%
+  filter(`Journey Type` == "Education") %>%
+  kable(
+    format    = "latex",
+    booktabs  = TRUE,
+    longtable = TRUE,   # <-- critical: allows page breaks
+    caption   = "Regional mode shares (\\%) in 2018 and 2023 and percentage-point change (2023 − 2018): Education",
+    escape    = TRUE
+  ) %>%
+  kable_styling(
+    latex_options = c("repeat_header"),  # header repeats on each page
+    font_size = 8
+  )
+```
+
+
+```{r}
+region_mode_share_pp %>%
+  filter(`Journey Type` == "Work") %>%
+  kable(
+    format    = "latex",
+    booktabs  = TRUE,
+    longtable = TRUE,
+    caption   = "Regional mode shares (\\%) in 2018 and 2023 and percentage-point change (2023 − 2018): Work",
+    escape    = TRUE
+  ) %>%
+  kable_styling(
+    latex_options = c("repeat_header"),
+    font_size = 8
+  )
+```
+
+
+```{r urban_rural_grouping, include=FALSE}
+
+urban_regions <- c(
+  "Auckland Region",
+  "Waikato Region",
+  "Bay of Plenty Region",
+  "Wellington Region",
+  "Canterbury Region"
+)
+
+nonurban_regions <- c(
+  "Gisborne Region",
+  "West Coast Region",
+  "Southland Region",
+  "Tasman Region",
+  "Marlborough Region"
+)
+
+edu_work_data_top5 <- edu_work_data %>%
+  mutate(
+    urban_group = case_when(
+      region %in% urban_regions    ~ "Urban (Top 5)",
+      region %in% nonurban_regions ~ "Non-Urban (Top 5)",
+      TRUE                         ~ "Other"
+    )
+  ) %>%
+  mutate(
+    urban_group = factor(
+      urban_group,
+      levels = c("Urban (Top 5)", "Non-Urban (Top 5)", "Other")
+    )
+  )
+```
+
+
+
+
+```{r include=TRUE}
+region_shares <- edu_work_data_top5 %>%
+  filter(region %in% c(urban_regions, nonurban_regions),
+         census_year %in% c(2018, 2023)) %>%
+  group_by(urban_group, region, journey_type, census_year, travel_category) %>%
+  summarise(count = sum(count, na.rm = TRUE), .groups = "drop") %>%
+  group_by(urban_group, region, journey_type, census_year) %>%
+  mutate(share = count / sum(count)) %>%
+  ungroup()
+```
+
+
+
+
+```{r include=FALSE}
+region_pp_change <- region_shares %>%
+  mutate(share_pct = 100 * share) %>%
+  select(urban_group, region, journey_type, census_year, travel_category, share_pct) %>%
+  pivot_wider(names_from = census_year, values_from = share_pct, names_prefix = "y") %>%
+  mutate(
+    pp_change_2018_2023 = y2023 - y2018,
+    across(c(y2018, y2023, pp_change_2018_2023), ~ round(.x, 2))
+  ) %>%
+  arrange(urban_group, region, journey_type, travel_category)
+
+region_pp_change
+
+
+```
+
+
+
+```{r include=FALSE}
+region_did <- region_pp_change %>%
+  select(urban_group, region, journey_type, travel_category, pp_change_2018_2023) %>%
+  pivot_wider(names_from = journey_type, values_from = pp_change_2018_2023) %>%
+  mutate(diff_in_diff_pp = round(Education - Work, 2)) %>%
+  arrange(urban_group, region, travel_category)
+
+region_did
+```
+
+
+
+```{r urban_non-urban_pp_changes, include=FALSE}
+group_shares <- edu_work_data_top5 %>%
+  filter(urban_group %in% c("Urban (Top 5)", "Non-Urban (Top 5)"),
+         census_year %in% c(2018, 2023)) %>%
+  group_by(urban_group, journey_type, census_year, travel_category) %>%
+  summarise(count = sum(count, na.rm = TRUE), .groups = "drop") %>%
+  group_by(urban_group, journey_type, census_year) %>%
+  mutate(share = count / sum(count)) %>%
+  ungroup()
+
+group_pp_change <- group_shares %>%
+  mutate(share_pct = 100 * share) %>%
+  select(urban_group, journey_type, census_year, travel_category, share_pct) %>%
+  pivot_wider(names_from = census_year, values_from = share_pct, names_prefix = "y") %>%
+  mutate(
+    pp_change_2018_2023 = y2023 - y2018,
+    across(c(y2018, y2023, pp_change_2018_2023), ~ round(.x, 2))
+  ) %>%
+  arrange(urban_group, journey_type, travel_category)
+
+group_pp_change %>%
+  select(
+    urban_group,
+    journey_type,
+    travel_category,
+    y2018,
+    y2023,
+    pp_change_2018_2023
+  ) %>%
+  rename(
+    `Region Classification`       = urban_group,
+    `Journey Type`                = journey_type,
+    `Travel Category`             = travel_category,
+    `2018 (%)`                    = y2018,
+    `2023 (%)`                    = y2023,
+    `Percentage-Point Change`     = pp_change_2018_2023
+  ) %>%
+  arrange(`Region Classification`, `Journey Type`, `Travel Category`) %>%
+  kable(
+    format    = "latex",
+    booktabs  = TRUE,
+    longtable = TRUE,
+    caption   = "Travel mode shares (2018 and 2023) and percentage-point changes for Top 5 Urban and Non-Urban regions"
+  ) %>%
+  kable_styling(
+    latex_options = c("repeat_header", "hold_position"),
+    font_size = 9
+  )
+```
+
+
+
+```{r urban_non-urban_did_changes, include=FALSE}
+group_did <- group_pp_change %>%
+  select(urban_group, journey_type, travel_category, pp_change_2018_2023) %>%
+  pivot_wider(names_from = journey_type, values_from = pp_change_2018_2023) %>%
+  mutate(diff_in_diff_pp = round(Education - Work, 2)) %>%
+  arrange(urban_group, travel_category)
+
+group_did %>%
+  select(
+    urban_group,
+    travel_category,
+    Education,
+    Work,
+    diff_in_diff_pp
+  ) %>%
+  rename(
+    `Urban Classification` = urban_group,
+    `Travel Category` = travel_category,
+    `Education Δpp` = Education,
+    `Work Δpp` = Work,
+    `Diff-in-Diff (Education − Work, pp)` = diff_in_diff_pp
+  ) %>%
+  knitr::kable(
+    format    = "latex",
+    booktabs  = TRUE,
+    longtable = TRUE,
+    caption   = "Difference-in-differences in percentage-point changes (2018–2023) between Education and Work travel mode shares for Top 5 Urban and Non-Urban regions",
+    escape    = FALSE
+  ) %>%
+  kableExtra::kable_styling(
+    latex_options = c("repeat_header", "hold_position"),
+    font_size = 9
+  )
+```
+
+
+
+
+
+```{r include=FALSE}
+chi_by_region_journey <- edu_work_data_top5 %>%
+  filter(
+    urban_group %in% c("Urban (Top 5)", "Non-Urban (Top 5)"),
+    census_year %in% c(2018, 2023)
+  ) %>%
+  group_by(urban_group, region, journey_type) %>%
+  group_modify(~{
+    tab <- .x %>%
+      group_by(census_year, travel_category) %>%
+      summarise(n = sum(count, na.rm = TRUE), .groups = "drop") %>%
+      pivot_wider(
+        names_from  = travel_category,
+        values_from = n,
+        values_fill = 0
+      ) %>%
+      arrange(census_year)
+
+    mat <- as.matrix(tab %>% select(-census_year))
+    rownames(mat) <- tab$census_year
+
+    tst <- suppressWarnings(chisq.test(mat))
+
+    tibble(
+      chi_sq  = unname(tst$statistic),
+      df      = unname(tst$parameter),
+      p_value = tst$p.value
+    )
+  }) %>%
+  ungroup() %>%
+  arrange(urban_group, region, journey_type)
+
+chi_by_region_journey %>%
+  dplyr::mutate(p_value = formatC(p_value, format = "e", digits = 3))
+
+
+
+```
+```{r include=FALSE}
+head(edu_work_data_top5)
+```
+
+
+
+```{r city_pp_change_table, include=TRUE}
+city_districts <- c(
+  "Wellington City",
+  "Christchurch City",
+  "Gisborne District",
+  "Invercargill City"
+)
+
+city_shares <- edu_work_data %>%
+  filter(
+    district %in% city_districts,
+    census_year %in% c(2018, 2023)
+  ) %>%
+  group_by(district, journey_type, census_year, travel_category) %>%
+  summarise(count = sum(count, na.rm = TRUE), .groups = "drop") %>%
+  group_by(district, journey_type, census_year) %>%
+  mutate(share = count / sum(count)) %>%
+  ungroup()
+
+city_pp_change <- city_shares %>%
+  mutate(share_pct = 100 * share) %>%
+  select(district, journey_type, census_year, travel_category, share_pct) %>%
+  pivot_wider(names_from = census_year, values_from = share_pct, names_prefix = "y") %>%
+  mutate(
+    pp_change_2018_2023 = y2023 - y2018,
+    across(c(y2018, y2023, pp_change_2018_2023), ~ round(.x, 2))
+  ) %>%
+  arrange(district, journey_type, travel_category)
+
+city_pp_change %>%
+  select(district, journey_type, travel_category, y2018, y2023, pp_change_2018_2023) %>%
+  rename(
+    District = district,
+    `Journey Type` = journey_type,
+    `Travel Category` = travel_category,
+    `2018 (%)` = y2018,
+    `2023 (%)` = y2023,
+    `Percentage-Point Change (2018–2023)` = pp_change_2018_2023
+  ) %>%
+  knitr::kable(
+    format    = "latex",
+    booktabs  = TRUE,
+    longtable = TRUE,
+    caption   = "Travel mode shares and percentage-point changes (2018–2023) for selected districts",
+    escape    = TRUE
+  ) %>%
+  kableExtra::kable_styling(
+    latex_options = "repeat_header",
+    font_size = 9
+  )
+```
+
+```{r}
+city_did <- city_pp_change %>%
+  select(district, journey_type, travel_category, pp_change_2018_2023) %>%
+  pivot_wider(
+    names_from  = journey_type,
+    values_from = pp_change_2018_2023
+    # optionally: values_fill = 0
+  ) %>%
+  mutate(
+    diff_in_diff_pp = round(.data[["Education"]] - .data[["Work"]], 2)
+  ) %>%
+  arrange(district, travel_category)
+
+city_did %>%
+  select(district, travel_category, Education, Work, diff_in_diff_pp) %>%
+  rename(
+    District = district,
+    `Travel Category` = travel_category,
+    `Education Δpp` = Education,
+    `Work Δpp` = Work,
+    `Diff-in-Diff (Education − Work, pp)` = diff_in_diff_pp
+  ) %>%
+  knitr::kable(
+    format    = "latex",
+    booktabs  = TRUE,
+    longtable = TRUE,
+    caption   = "Difference-in-differences in percentage-point changes (2018–2023) between Education and Work travel mode shares for selected districts",
+    escape    = FALSE
+  ) %>%
+  kableExtra::kable_styling(
+    latex_options = c("repeat_header"), 
+    font_size = 9
+  )
+```
+
+
+
+```{r pp-change-by-age_group-journey, include=FALSE}
+pp_change_by_group_journey <- function(data, group_vars) {
+
+  data %>%
+    filter(census_year %in% c(2018, 2023)) %>%
+    group_by(across(all_of(c("journey_type", group_vars, "census_year", "travel_category")))) %>%
+    summarise(count = sum(count, na.rm = TRUE), .groups = "drop") %>%
+    group_by(across(all_of(c("journey_type", group_vars, "census_year")))) %>%
+    mutate(share = count / sum(count)) %>%
+    ungroup() %>%
+    mutate(share_pct = 100 * share) %>%
+    select(journey_type, all_of(group_vars), census_year, travel_category, share_pct) %>%
+    pivot_wider(
+      names_from = census_year,
+      values_from = share_pct,
+      names_prefix = "y"
+    ) %>%
+    mutate(
+      pp_change_2018_2023 = y2023 - y2018,
+      across(c(y2018, y2023, pp_change_2018_2023), ~ round(.x, 2))
+    )
+}
+
+gender_pp_by_journey <- pp_change_by_group_journey(edu_work_data, group_vars = c("gender"))
+
+gender_pp_by_journey %>%
+  arrange(journey_type, gender, desc(abs(pp_change_2018_2023)))
+```
+
+
+
+
+```{r include=FALSE}
+gender_did_pp <- gender_pp_by_journey %>%
+  select(journey_type, gender, travel_category, pp_change_2018_2023) %>%
+  pivot_wider(names_from = journey_type, values_from = pp_change_2018_2023) %>%
+  mutate(
+    diff_in_diff_pp = Education - Work,
+    abs_diff_in_diff = abs(diff_in_diff_pp)
+  ) %>%
+  arrange(gender, desc(abs_diff_in_diff))
+
+gender_did_pp
+```
+
+
+
+```{r age_group-pp-by-journey-table, include=TRUE}
+
+age_pp_by_journey <- pp_change_by_group_journey(edu_work_data, group_vars = c("age_group"))
+
+age_pp_by_journey %>%
+  arrange(journey_type, age_group, desc(abs(pp_change_2018_2023))) %>%
+  mutate(
+    pp_change_2018_2023 = round(pp_change_2018_2023, 2)
+  ) %>%
+  select(
+    journey_type,
+    age_group,
+    travel_category,
+    pp_change_2018_2023
+  ) %>%
+  rename(
+    `Journey Type` = journey_type,
+    `Age Group` = age_group,
+    `Travel Category` = travel_category,
+    `Percentage-Point Change (2018–2023)` = pp_change_2018_2023
+  ) %>%
+  knitr::kable(
+    format    = "latex",
+    booktabs  = TRUE,
+    longtable = TRUE,
+    caption   = "Percentage-point changes (2018–2023) in travel mode shares by age group and journey type",
+    escape    = FALSE
+  ) %>%
+  kableExtra::kable_styling(
+    latex_options = c("repeat_header", "hold_position"),
+    font_size = 9
+  )
+```
+
+
+
+```{r include=TRUE}
+age_did_pp <- age_pp_by_journey %>%
+  select(journey_type, age_group, travel_category, pp_change_2018_2023) %>%
+  pivot_wider(names_from = journey_type, values_from = pp_change_2018_2023) %>%
+  mutate(
+    diff_in_diff_pp = round(Education - Work, 2),
+    abs_diff_in_diff = abs(diff_in_diff_pp)
+  ) %>%
+  arrange(age_group, desc(abs_diff_in_diff))
+
+age_did_pp %>%
+  select(
+    age_group,
+    travel_category,
+    Education,
+    Work,
+    diff_in_diff_pp
+  ) %>%
+  rename(
+    `Age Group` = age_group,
+    `Travel Category` = travel_category,
+    `Education Δpp` = Education,
+    `Work Δpp` = Work,
+    `Diff-in-Diff (Education − Work, pp)` = diff_in_diff_pp
+  ) %>%
+  knitr::kable(
+    format    = "latex",
+    booktabs  = TRUE,
+    longtable = TRUE,
+    caption   = "Difference-in-differences in percentage-point changes (2018–2023) between Education and Work travel mode shares by age group",
+    escape    = FALSE
+  ) %>%
+  kableExtra::kable_styling(
+    latex_options = c("repeat_header", "hold_position"),
+    font_size = 9
+  )
+```
+
+
+
+```{r include=FALSE}
+region_pp_by_journey <- pp_change_by_group_journey(edu_work_data, group_vars = c("region"))
+
+region_pp_by_journey %>%
+  arrange(journey_type, region, desc(abs(pp_change_2018_2023)))
+```
+
+
+
+
+```{r include=TRUE}
+region_did_pp <- region_pp_by_journey %>%
+  select(journey_type, region, travel_category, pp_change_2018_2023) %>%
+  pivot_wider(names_from = journey_type, values_from = pp_change_2018_2023) %>%
+  mutate(
+    diff_in_diff_pp = round(Education - Work, 2),
+    abs_diff_in_diff = abs(diff_in_diff_pp)
+  ) %>%
+  arrange(region, desc(abs_diff_in_diff))
+
+region_did_pp %>%
+  select(
+    region,
+    travel_category,
+    Education,
+    Work,
+    diff_in_diff_pp
+  ) %>%
+  rename(
+    Region = region,
+    `Travel Category` = travel_category,
+    `Education Δpp` = Education,
+    `Work Δpp` = Work,
+    `Diff-in-Diff (Education − Work, pp)` = diff_in_diff_pp
+  ) %>%
+  knitr::kable(
+    format    = "latex",
+    booktabs  = TRUE,
+    longtable = TRUE,
+    caption   = "Region-level percentage-point changes (2018–2023) and difference-in-differences between Education and Work travel mode shares",
+    escape    = FALSE
+  ) %>%
+  kableExtra::kable_styling(
+    latex_options = c("repeat_header", "hold_position"),
+    font_size = 9
+  )
+```
+
+
+
+```{r include=FALSE}
+delta_contrib_by_group_journey <- function(data, group_var) {
+
+  data %>%
+    filter(census_year %in% c(2018, 2023)) %>%
+    group_by(journey_type, !!sym(group_var), census_year, travel_category) %>%
+    summarise(n = sum(count, na.rm = TRUE), .groups = "drop") %>%
+    pivot_wider(names_from = census_year, values_from = n, names_prefix = "y", values_fill = 0) %>%
+    mutate(delta = y2023 - y2018) %>%
+    group_by(journey_type, travel_category) %>%
+    mutate(
+      total_delta = sum(delta, na.rm = TRUE),
+      contrib_pct = ifelse(total_delta == 0, NA_real_, 100 * delta / total_delta),
+      contrib_pct = round(contrib_pct, 1)
+    ) %>%
+    ungroup()
+}
+```
+
+
+
+```{r include=FALSE}
+contrib_gender_by_journey <- delta_contrib_by_group_journey(edu_work_data, "gender") %>%
+  arrange(journey_type, travel_category, desc(abs(delta)))
+
+contrib_gender_by_journey
+```
+
+
+
+```{r include=FALSE}
+contrib_age_by_journey <- delta_contrib_by_group_journey(edu_work_data, "age_group") %>%
+  arrange(journey_type, travel_category, desc(abs(delta)))
+
+contrib_age_by_journey
+```
+
+
+```{r include=FALSE}
+contrib_region_by_journey <- delta_contrib_by_group_journey(edu_work_data, "region") %>%
+  arrange(journey_type, travel_category, desc(abs(delta)))
+
+contrib_region_by_journey
+```
+
+
+
+```{r include=FALSE}
+top_driver_summary <- contrib_region_by_journey %>%
+  group_by(journey_type, travel_category) %>%
+  slice_max(order_by = abs(delta), n = 5, with_ties = FALSE) %>%
+  ungroup() %>%
+  select(journey_type, travel_category, region, delta, contrib_pct) %>%
+  arrange(journey_type, travel_category, desc(abs(delta)))
+
+top_driver_summary
+```
+
+
+
+```{r include=FALSE}
+contrib_gender_by_journey <- delta_contrib_by_group_journey(edu_work_data, "gender")
+
+top_driver_gender <- contrib_gender_by_journey %>%
+  group_by(journey_type, travel_category) %>%
+  slice_max(order_by = abs(delta), n = 5, with_ties = FALSE) %>%
+  ungroup() %>%
+  select(journey_type, travel_category, gender, delta, contrib_pct) %>%
+  arrange(journey_type, travel_category, desc(abs(delta)))
+
+top_driver_gender
+```
+
+
+
+```{r include=FALSE}
+contrib_age_by_journey <- delta_contrib_by_group_journey(edu_work_data, "age_group")
+
+top_driver_age <- contrib_age_by_journey %>%
+  group_by(journey_type, travel_category) %>%
+  slice_max(order_by = abs(delta), n = 5, with_ties = FALSE) %>%
+  ungroup() %>%
+  select(journey_type, travel_category, age_group, delta, contrib_pct) %>%
+  arrange(journey_type, travel_category, desc(abs(delta)))
+
+top_driver_age
+```
+
+
+```{r include=FALSE}
+top_driver_region <- contrib_region_by_journey %>%
+  group_by(journey_type, travel_category) %>%
+  slice_max(order_by = abs(delta), n = 5, with_ties = FALSE) %>%
+  ungroup() %>%
+  transmute(
+    journey_type, travel_category,
+    driver_type = "Region",
+    driver_value = region,
+    delta, contrib_pct
+  )
+
+top_driver_gender_long <- top_driver_gender %>%
+  transmute(
+    journey_type, travel_category,
+    driver_type = "Gender",
+    driver_value = gender,
+    delta, contrib_pct
+  )
+
+top_driver_age_long <- top_driver_age %>%
+  transmute(
+    journey_type, travel_category,
+    driver_type = "Age group",
+    driver_value = age_group,
+    delta, contrib_pct
+  )
+
+top_drivers_all <- bind_rows(top_driver_region, top_driver_gender_long, top_driver_age_long) %>%
+  arrange(journey_type, travel_category, driver_type, desc(abs(delta)))
+
+top_drivers_all
+```
+
