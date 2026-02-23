@@ -169,7 +169,7 @@ text/paper/move_nz_research_paper.Rmd
 
 The appendix contains the full analysis code for transparency and academic completeness.
 To rebuild the paper:
-1. Open paper.Rmd
+1. Open move_nz_research_paper.Rmd
 2. Knit to PDF (XeLaTeX required)
 
 ---
