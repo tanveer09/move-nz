@@ -36,9 +36,7 @@ Icon?
 # Knitr / R Markdown outputs
 ############################################
 *.html
-*.pdf
 *.docx
-*.md
 *_cache/
 *_files/
 
