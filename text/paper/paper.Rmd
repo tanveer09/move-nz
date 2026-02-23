@@ -1,25 +1,29 @@
 ---
-  title: "Changes in Travel Behaviour to Education and Work in New Zealand:\\
-  A Comparative Analysis of Census 2018 and 2023 Data"
-  author: |
-    Tanveer Singh \
-    Victoria University of Wellington, New Zealand
-  date: "February 5, 2026"
-  output:
-    pdf_document:
-      latex_engine: xelatex
-      number_sections: true
-      toc: false
-  fontsize: 11pt
-  geometry: margin=1in
-  bibliography: ../../common/references.bib
-  csl: ../../common/apa.csl
-  citeproc: true
-  link-citations: true
-  header-includes:
-    - \usepackage{float}
-    - \usepackage{placeins}
+title: |
+  Changes in Travel Behaviour to Education and Work in New Zealand:\
+  A Comparative Analysis of Census 2018 and 2023 Data
+author: |
+  Tanveer Singh\
+  Supervisor: Prof. Alejandro Frery Orgambide\
+  School of Mathematics and Statistics\
+  Victoria University of Wellington, New Zealand
+date: "20th February 2026"
+output:
+  pdf_document:
+    latex_engine: xelatex
+    number_sections: true
+    toc: false
+fontsize: 11pt
+geometry: margin=1in
+bibliography: ../../common/references.bib
+csl: ../../common/apa.csl
+citeproc: true
+link-citations: true
+header-includes:
+  - \usepackage{float}
+  - \usepackage{placeins}
 ---
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 
@@ -68,77 +72,81 @@ The analysis combines descriptive statistics, percentage-point change measures, 
 Further analysis reveals substantial regional variation, with urban areas experiencing larger shifts than non-urban regions. By integrating population-scale census data with formal statistical inference, this study provides new national-level evidence on post-COVID travel behaviour in New Zealand, with particular emphasis on education travel, which has received limited attention in existing research. The findings have direct implications for transport planning and post-pandemic policy development.
 \end{abstract}
 
+\clearpage
+
 
 # Introduction & Motivation
 
-Understanding how people travel to education and work is central to transport planning and public policy, as these journeys account for a substantial share of daily travel demand and strongly influence peak-period congestion, infrastructure investment, environmental outcomes, and social equity. In New Zealand, population-level travel behaviour is most comprehensively captured through the national census, which provides consistent, spatially detailed information on individuals’ main means of travel across regions, districts, and neighbourhood-scale statistical areas. As such, census data play a critical role in informing long-term transport strategies and monitoring structural changes in travel behaviour over time.
+Understanding how people travel to education and work is central to transport planning and public policy, as these journeys account for a substantial share of daily travel demand and strongly influence peak-period congestion, infrastructure investment, environmental outcomes, and social equity. In New Zealand, population-level travel behaviour is most comprehensively captured through the national census, which provides consistent, spatially detailed information on individuals’ main means of travel across regions, districts, and neighbourhood-scale statistical areas. Census data therefore play a critical role in informing long-term transport strategies and monitoring structural changes in travel behaviour over time [@StatsNZ2024a].
+The 2018 and 2023 census waves are of particular analytical significance because they bracket the COVID-19 pandemic, a period that fundamentally disrupted everyday mobility patterns. Lockdowns, school closures, remote learning, and the rapid adoption of working and studying from home altered not only the volume of travel but also the relative attractiveness and feasibility of different travel modes [@CURRIE2021218; @PAWLUKDETOLEDO2024115]. While early pandemic impacts were widely documented, there remains considerable uncertainty regarding the extent to which these changes represent temporary shocks versus persistent structural shifts in travel behaviour, especially in a post-pandemic context where hybrid arrangements have become increasingly normalised [@HENSHER2022179; @HUANG2023202].
 
-The 2018 and 2023 census waves are of particular analytical significance because they bracket the COVID-19 pandemic, a period that fundamentally disrupted everyday mobility patterns. Lockdowns, school closures, remote learning, and the rapid adoption of working and studying from home altered not only the volume of travel but also the relative attractiveness and feasibility of different travel modes. While early pandemic impacts were widely documented, there remains considerable uncertainty regarding the extent to which these changes represent temporary shocks versus persistent structural shifts in travel behaviour, especially in a post-pandemic context where hybrid arrangements have become increasingly normalised.
+Most empirical research on post-COVID travel behaviour has focused on journeys to work, reflecting their historical dominance in transport modelling and policy evaluation [@HEINEN201581]. However, travel to education represents a distinct and substantial component of daily travel demand, involving different age groups, household decision-making processes, and institutional constraints [@MANDIC2023101585]. In New Zealand, Journey to Education data are only available for the 2018 and 2023 censuses, making this the first opportunity to conduct a national pre- and post-COVID comparison of education-related travel behaviour using consistent population-scale data [@StatsNZ2024EducationTravel].
+Despite growing international evidence on pandemic-induced mobility change, no national-scale study has directly compared post-COVID changes in Journey to Education and Journey to Work travel-mode distributions in New Zealand using harmonised census data within a unified statistical framework. Existing analyses tend either to focus on commuting alone or to rely on survey-based evidence from specific cities [@BUEHLER2025104549]. This leaves an important gap in understanding whether education and work travel have followed similar or divergent recovery trajectories across regions and settlement types.
 
-Most empirical research on post-COVID travel behaviour has focused on journeys to work, reflecting their historical dominance in transport modelling and policy evaluation. However, travel to education represents a distinct and substantial component of daily travel demand, involving different age groups, household decision-making processes, and institutional constraints. In New Zealand, Journey to Education data are only available for the 2018 and 2023 censuses, making this the first opportunity to conduct a national, pre- and post-COVID comparison of education-related travel behaviour using consistent population-scale data. Treating education travel as analytically equivalent to work travel—rather than as a subset or proxy—allows for a more complete understanding of how different segments of the transport system have adapted to post-pandemic conditions.
+Preliminary descriptive evidence suggests that travel behaviour changes since 2018 have not been uniform across journey purposes or regions. Study from home has increased markedly, particularly for education, while public transport has experienced sustained declines that vary by urbanisation level and geographic context [@HENSHER2022179; @BUEHLER2025104549]. At the same time, private transport continues to dominate in-person travel, and changes in active transport appear uneven across cities and regions [@PAWLUKDETOLEDO2024115]. These patterns raise important questions for transport policy, including whether post-COVID travel behaviour is converging toward more sustainable outcomes or reinforcing existing car dependence, and whether education and work travel are evolving along similar or divergent trajectories.
 
-Preliminary descriptive evidence suggests that travel behaviour changes since 2018 have not been uniform across journey purposes or regions. Study from home has increased markedly, particularly for education, while public transport has experienced sustained declines that vary by urbanisation level and geographic context. At the same time, private transport continues to dominate in-person travel, and changes in active transport appear uneven across cities and regions. These patterns raise important questions for transport policy, including whether post-COVID travel behaviour is converging toward more sustainable outcomes or reinforcing existing car dependence, and whether education and work travel are evolving along similar or divergent trajectories.
+This research builds directly on prior internship work undertaken with the New Zealand Transport Agency (NZTA), where Census 2018 and 2023 Journey to Education data were analysed and presented through an interactive Power BI dashboard. That work highlighted clear national and regional shifts in travel-mode shares but was primarily descriptive. The present study extends this foundation by integrating Journey to Education and Journey to Work data within a unified analytical framework and applying formal statistical methods to assess whether observed differences over time and between journey purposes are statistically meaningful rather than visually apparent alone.
 
-This research builds directly on prior internship work undertaken with the New Zealand Transport Agency (NZTA), where Census 2018 and 2023 Journey to Education data were analysed and presented through an interactive Power BI dashboard. That work highlighted clear national and regional shifts in travel-mode shares but was primarily descriptive in nature. The present study extends this foundation by integrating Journey to Education and Journey to Work data within a unified analytical framework and applying formal statistical methods to assess whether observed differences over time and between journey purposes are statistically meaningful rather than visually apparent alone.
+Accordingly, this study examines whether travel-mode distributions changed between 2018 and 2023 within Journey to Education and Journey to Work, whether the magnitude and direction of these changes differ systematically between journey purposes, and whether such differences exhibit spatial heterogeneity across urban and non-urban contexts. It further assesses whether differential change over time can be formally detected when census year and journey purpose are modelled jointly within a multinomial framework. These questions are addressed using harmonised mode categories, percentage-point and difference-in-differences comparisons, chi-square tests of homogeneity and independence, and a multinomial specification incorporating a Year × Journey Type interaction term.
 
-The primary aim of this study is to systematically examine how travel-mode distributions for education and work journeys in New Zealand changed between 2018 and 2023, and whether these changes differ in magnitude, direction, and spatial pattern. Specifically, the research addresses three overarching objectives. First, it quantifies and visualises changes in travel-mode shares at national, regional, and city levels, using harmonised travel-mode categories to ensure comparability across datasets. Second, it evaluates whether education and work travel exhibit statistically different patterns of change over time, employing percentage-point change metrics, difference-in-differences comparisons, and tests of homogeneity on multinomial distributions. Third, it explores spatial heterogeneity by comparing urban and non-urban regions and identifying regions and demographic groups that contribute most strongly to observed changes.
+To address these questions, the study adopts a comparative distributional framework. Travel modes are harmonised into policy-relevant categories, and changes in mode shares are examined using percentage-point metrics, difference-in-differences comparisons, chi-square tests of homogeneity and independence on multinomial distributions [@GOODMAN1982CrossClassified], and a multinomial modelling framework incorporating a Year × Journey Type interaction term. This approach is appropriate given the aggregated nature of census data and the study’s primary interest in system-level redistribution rather than individual-level causal inference.
 
-By combining population-scale census data with formal statistical inference and complementary visual analytics, this study provides robust national-level evidence on post-COVID travel behaviour in New Zealand. In doing so, it addresses a notable gap in the literature regarding education travel and offers policy-relevant insights for transport planning, demand management, and infrastructure investment in a post-pandemic environment.
-
-
-## Background and Literature Review
-
-### Travel behaviour change as a long-standing research domain
-
-Research on travel behaviour has historically concentrated on explaining mode choice for routine journeys, particularly journeys to work, reflecting their importance for peak-period congestion, infrastructure provision, and labour market accessibility. This body of literature has primarily employed household travel surveys, census data, and stated or revealed preference models to examine how socio-demographic characteristics, land use patterns, and transport infrastructure shape travel decisions [@Heinen2015]. Across this work, a consistent finding is that travel behaviour is strongly structured by spatial context, daily activity constraints, and the availability of viable transport alternatives.
-
-Within this body of work, journeys to work have received disproportionate attention relative to journeys to education, despite education travel representing a substantial share of peak-period demand and involving populations with distinct constraints and decision processes. Studies focusing on school travel demonstrate that distance, settlement type, parental perceptions, and transport infrastructure strongly influence mode choice, often producing different patterns from adult commuting [@MANDIC2023101585; @YAN2019SchoolTravel]. This asymmetry in the literature is important, as it limits understanding of how system-wide shocks--such as the COVID-19 pandemic--may affect education and work travel differently.
+By combining population-scale census data with formal statistical inference and complementary visual analytics, this study provides robust national-level evidence on post-COVID travel behaviour in New Zealand. In doing so, it addresses a clear empirical gap regarding education travel, offers the first harmonised national comparison of education and work mode-share change, and contributes policy-relevant insight into how different segments of the transport system have adapted in the post-pandemic environment.
 
 
-### COVID-19 as a natural experiment in travel behaviour change
+# Background and Literature Review
 
-The COVID-19 pandemic represents an unprecedented disruption to daily mobility, effectively functioning as a global natural experiment in travel behaviour change. A rapidly growing literature documents dramatic declines in overall travel demand during lockdown periods, alongside sharp shifts in mode shares away from public transport and towards private vehicles, active modes, and remote participation [@CURRIE2021218; @PAWLUKDETOLEDO2024115]. Unlike incremental infrastructure or policy interventions, the pandemic simultaneously altered perceived risk, institutional arrangements, and technological feasibility, particularly through the widespread adoption of working and studying from home.
+This section situates the study within the broader literature on travel behaviour change, with particular emphasis on journey purpose, spatial heterogeneity, and pandemic-induced disruption. It first reviews established research on mode choice and routine mobility patterns, before examining COVID-19 as a natural experiment in travel behaviour change. The review then considers evidence specific to education travel and regional variation, highlighting limitations in existing work and motivating the comparative, population-scale framework adopted in this study.
 
-Research consistently shows that working from home (WFH) became a central driver of reduced commuting demand during the pandemic and is likely to persist in hybrid form post-pandemic [@HENSHER2022179; @HUANG2023202]. [@CURRIE2021218], for example, found strong stated intentions to continue remote work in Melbourne, implying long-term structural changes in peak-period travel rather than a temporary shock. Similar conclusions emerge from international contexts, suggesting that COVID-induced behavioural changes are not geographically isolated but reflect broader systemic shifts [@HAMAD2024101008].
+## Travel behaviour change as a long-standing research domain
 
-Importantly, the pandemic did not affect all modes equally. Public transport experienced the most severe and prolonged decline, driven by infection risk perceptions, service reductions, and the erosion of habitual commuting patterns [@BUEHLER2025104549; @HOSSAIN2024AucklandPT]. In contrast, private vehicle use rebounded more quickly, while active transport increased in many urban areas, particularly during periods of restricted movement [@PAWLUKDETOLEDO2024115]. These asymmetric effects raise critical questions about whether post-pandemic transport systems are converging toward more sustainable trajectories or settle on car dependence.
+Research on travel behaviour has historically concentrated on explaining mode choice for routine journeys, particularly journeys to work, reflecting their importance for peak-period congestion, infrastructure provision, and labour market accessibility. This body of literature has employed household travel surveys, census data, and discrete choice models to examine how socio-demographic characteristics, land use patterns, and transport infrastructure shape travel decisions [@HEINEN201581]. Across this work, travel behaviour is consistently shown to be structured by spatial context, daily activity constraints, and the availability of viable transport alternatives.
 
+Within this literature, journeys to work have received disproportionate attention relative to journeys to education. The dominance of commuting-based modelling has implicitly positioned work travel as the default representation of daily mobility, potentially obscuring important differences in education-related travel demand. Studies focusing on school and education travel demonstrate that distance, settlement type, parental perceptions, and infrastructure availability strongly influence mode choice, often producing different patterns from adult commuting [@MANDIC2023101585; @YAN2019SchoolTravel]. These structural differences suggest that findings derived from Journey to Work analyses cannot be assumed to generalise automatically to Journey to Education contexts.
 
-### Education travel and differential impacts of the pandemic
+## COVID-19 as a natural experiment in travel behaviour change
 
-While much COVID-related travel research has focused on adult workers, a smaller but growing body of literature examines travel to school and education, revealing both parallels and important divergences. [@MANDIC2023101585] show that school travel mode choice in New Zealand varies strongly by settlement type and home-to-school distance, with active travel far more prevalent in compact urban settings than in rural or low-density areas. These spatial gradients imply that pandemic-related disruptions may manifest differently across regions and urbanisation levels.
+The COVID-19 pandemic represents an unprecedented disruption to daily mobility, widely conceptualised as a global natural experiment in travel behaviour change. A rapidly expanding literature documents dramatic declines in overall travel demand during lockdown periods, alongside sharp shifts in mode shares away from public transport and towards private vehicles, active modes, and remote participation [@CURRIE2021218; @PAWLUKDETOLEDO2024115]. Unlike incremental policy or infrastructure interventions, the pandemic simultaneously altered perceived health risk, institutional arrangements, and technological feasibility, particularly through the widespread adoption of working and studying from home.
 
-Further evidence suggests that the pandemic altered not only observed school travel behaviour but also perceptions and norms around active modes. [@MANDIC2024101803] found changes in adolescents’ attitudes toward walking to school during COVID-19, reflecting heightened parental concerns and altered daily routines. These findings suggest that behavioural responses to COVID-19 in education contexts may be mediated through family decision-making processes, school policies, and local infrastructure in ways that differ fundamentally from adult commuting.
+Evidence consistently identifies working from home (WFH) as a central driver of reduced commuting demand during the pandemic, with hybrid work arrangements persisting beyond the acute phase [@HENSHER2022179; @HUANG2023202]. These findings suggest that COVID-induced behavioural changes may represent structural adjustments rather than temporary deviations. Public transport has experienced the most severe and prolonged decline, influenced by infection risk perceptions and service disruptions, while private vehicle use rebounded more rapidly [@BUEHLER2025104549; @HOSSAIN2024AucklandPT]. Active transport exhibited heterogeneous responses across cities and contexts [@PAWLUKDETOLEDO2024115].
 
-Comparative studies outside New Zealand reinforce this point. [@YAN2019SchoolTravel] demonstrate that institutional context--such as public versus private schooling--can produce systematic differences in travel behaviour, even within the same metropolitan region. Taken together, this literature highlights the importance of treating education travel as analytically distinct rather than assuming that findings from journey-to-work studies generalise automatically.
+This asymmetric recovery raises the possibility that different journey purposes may exhibit distinct post-pandemic trajectories, particularly where flexibility, institutional constraints, and household decision-making processes differ.
 
+## Education travel and differential impacts of the pandemic
 
-## Persistence, recovery, and regional variation in post-COVID travel
+Although much COVID-related travel research focuses on adult commuting, a smaller but growing literature examines travel to school and education, revealing both parallels and divergences. New Zealand evidence shows that school travel mode choice varies strongly by settlement type and home-to-school distance, with active travel more prevalent in compact urban settings [@MANDIC2023101585]. Pandemic-related disruptions may therefore manifest differently across spatial contexts.
 
-A key unresolved question in the literature concerns the persistence of pandemic-induced travel behaviour changes. While early studies relied heavily on stated intentions, more recent work incorporates longer post-pandemic observation windows, revealing partial but uneven recovery patterns. [@BUEHLER2025104549], in a multi-country comparative analysis, show that public transport ridership in Australia recovered to around 90% of pre-pandemic levels by 2024, but with substantial variation across cities, modes, and days of the week. This suggests that aggregate recovery masks important structural changes in travel timing and purpose.
+Moreover, education travel decisions are frequently mediated through household coordination and institutional rules rather than individual choice alone. Research indicates that COVID-19 altered adolescents’ attitudes and parental perceptions regarding active travel [@MANDIC2024101803], suggesting that education travel responses may be shaped by factors distinct from those influencing adult commuting. International evidence further demonstrates that institutional context, including school type and governance, can produce systematic differences in travel behaviour even within the same metropolitan region [@YAN2019SchoolTravel].
 
-Qualitative and mixed-methods studies further emphasise that post-COVID travel behaviour is unlikely to revert fully to pre-pandemic norms. [@PAWLUKDETOLEDO2024115] argue that changes in travel behaviour are embedded within broader lifestyle adjustments, including altered activity patterns, residential preferences, and expectations of flexibility. From this perspective, COVID-19 represents not merely a temporary shock but a catalyst accelerating longer-term trends such as remote participation and decentralisation.
+Taken together, this literature underscores the importance of treating education travel as analytically distinct rather than extrapolating from work-focused studies.
 
-Despite these advances, most existing studies remain city-specific, survey-based, or focused on single trip purposes. There is comparatively little work using population-scale administrative data to quantify changes consistently across regions and over time, particularly in the education context. This gap is especially evident in New Zealand, where census data provide rare national coverage but have been underutilised for post-COVID comparative analysis.
+## Persistence, recovery, and regional heterogeneity
 
+A key unresolved question concerns whether pandemic-induced travel behaviour changes are temporary or persistent. More recent studies incorporating extended post-pandemic observation windows show uneven recovery patterns, particularly for public transport, with substantial variation across regions and modes [@BUEHLER2025104549]. Qualitative research suggests that behavioural adjustments are embedded within broader lifestyle changes, including altered expectations of flexibility and decentralised activity patterns [@PAWLUKDETOLEDO2024115].
+
+Despite these advances, much of the existing evidence remains survey-based or city-specific. There is comparatively limited use of population-scale administrative data to compare changes consistently across journey purposes and spatial contexts. In New Zealand, census data provide rare national coverage for both Journey to Work and Journey to Education [@StatsNZ2024a], yet systematic comparative analysis remains limited.
 
 ## Methodological approaches and relevance to the present study
 
-Methodologically, prior research on travel behaviour change employs a diverse toolkit, including multinomial logit models, quasi-experimental designs, and before-after comparisons [@Heinen2015; @HENSHER2022179]. Many studies explicitly model changes in mode share, recognising that shifts in relative proportions often provide more policy-relevant insight than absolute trip counts alone. Multinomial and distribution-based approaches are particularly well suited to analysing categorical mode choice outcomes where substitution effects between modes are central.
+Methodologically, prior research employs multinomial logit models, quasi-experimental designs, and before-after comparisons to analyse travel behaviour change [@HEINEN201581; @HENSHER2022179]. Where interest centres on redistribution across categorical outcomes, distributional approaches are particularly appropriate. Chi-square tests of homogeneity and independence provide a natural framework for assessing whether multinomial travel-mode distributions differ across time periods or journey types in large contingency tables [@GOODMAN1982CrossClassified].
 
-The present study builds on this tradition by adopting a comparative distributional framework, using census counts and proportions to assess how mode shares changed between 2018 and 2023. This approach is consistent with prior work that treats large-scale disruptions--such as infrastructure interventions or pandemics--as natural experiments, where the primary interest lies in system-level redistribution rather than individual causal attribution [@Heinen2015].
+Given the aggregated structure of census data and the study’s focus on system-level redistribution rather than individual-level causal inference, a distributional framework is both statistically coherent and substantively meaningful. Percentage-point and relative changes complement formal significance testing, helping to distinguish statistically detectable differences from substantively important shifts in large samples. The inclusion of a multinomial modelling framework with a Year × Journey Type interaction allows direct testing of differential change within a unified model structure.
 
-In contrast to much of the COVID-19 literature, which relies on self-reported surveys, this research leverages official census data covering approximately 580,000 records across all New Zealand regions and statistical areas. This enables robust comparison across urban and non-urban contexts, addressing calls in the literature for greater attention to spatial heterogeneity [@MANDIC2023101585; @BUEHLER2025104549]. The planned use of multinomial distribution tests to compare journey-to-education and journey-to-work patterns directly responds to the observed imbalance in prior research emphasis.
+By integrating national census data covering approximately 580,000 aggregated records across all regions and statistical areas, this study responds to calls for population-scale evidence and greater attention to spatial heterogeneity [@MANDIC2023101585; @BUEHLER2025104549]. The combination of inferential statistics and visual analytic techniques further enhances interpretability for policy audiences [@PAWLUKDETOLEDO2024115].
 
-Visual analytic techniques, such as Sankey diagrams, further complement the quantitative analysis by illustrating the redistribution of mode shares over time, an approach increasingly recognised as valuable for communicating complex behavioural shifts to policy audiences [@PAWLUKDETOLEDO2024115]. Together, these methods position the study at the intersection of descriptive, inferential, and policy-relevant transport research.
+## Contribution of the current research
 
+This study makes four principal contributions.
 
-### Contribution of the current research
+First, it provides the first harmonised national comparison of Journey to Education and Journey to Work travel-mode distributions before and after the COVID-19 pandemic in New Zealand [@StatsNZ2024a].
 
-In summary, existing literature clearly demonstrates that COVID-19 has reshaped travel behaviour across multiple dimensions, with persistent implications for mode choice, public transport viability, and regional equity. However, important gaps remain regarding education travel, national-scale evidence, and direct comparison between work and education journeys. By analysing Census 2018 and 2023 data within a unified framework, this research contributes novel empirical evidence to these debates, grounding post-COVID travel behaviour analysis in comprehensive population data rather than stated preferences alone.
+Second, it moves beyond descriptive analysis by formally testing differential change over time using distributional methods and multinomial modelling [@GOODMAN1982CrossClassified].
 
-By explicitly comparing journey-to-education and journey-to-work outcomes, and by situating these within urban–non-urban contexts, the study extends existing findings and provides policy-relevant insight into how different segments of the transport system have adapted--or failed to adapt--in the post-pandemic period.
+Third, it explicitly examines spatial heterogeneity across urban and non-urban contexts, addressing an underexplored dimension of post-pandemic travel recovery [@MANDIC2023101585].
 
+Fourth, it grounds post-COVID mobility analysis in comprehensive population-scale census data rather than survey-based stated preferences alone [@StatsNZ2024a].
+
+Together, these contributions advance understanding of how different segments of the transport system have adapted in the post-pandemic period and provide robust empirical evidence to inform long-term transport planning and investment decisions.
 
 
 # Methodology
@@ -160,7 +168,7 @@ The analysis draws on publicly available, aggregated Census data released by Sta
 
 The education dataset represents the census usually resident population who reported studying, while the work dataset represents the employed usually resident population aged 15 years and over. Both datasets provide aggregated counts disaggregated by travel mode, age group, gender, Census year, and geographic unit.
 
-Data are available at multiple spatial resolutions. This study adopts **Statistical Area 2 (SA2)** as the primary unit of analysis, as SA2s are designed to represent stable local communities of approximately 2,000–4,000 residents and provide a consistent sub-regional spatial framework across census waves. Regional council and territorial authority identifiers were retained to support higher-level aggregation and regional comparison.
+Data are available at multiple spatial resolutions. For consistency and aggregation safety, data were downloaded and processed at the **Statistical Area 2 (SA2)** level, which provides stable sub-regional units of approximately 2,000-4,000 residents and ensures comparability across census waves. SA2-level data were subsequently aggregated to regional, territorial authority (city/district), and grouped urban/non-urban classifications for analysis and reporting. Regional council and territorial authority identifiers were retained to support transparent spatial aggregation and comparative analysis.
 
 All datasets consist exclusively of aggregated population counts. No unit-record or individual-level data were accessed.
 
@@ -168,9 +176,9 @@ All datasets consist exclusively of aggregated population counts. No unit-record
 
 ### Data access and download procedure
 
-Data were accessed via the Stats NZ online data explorer under the Census *Transport* category. For each journey type—Journey to Education and Journey to Work—data for the **2018 and 2023 Census waves were downloaded simultaneously** to ensure consistent table structure and metadata alignment across years.
+Data were accessed via the Stats NZ online Aotearoa Data Explorer under the Census *Transport* category. For each journey type, Journey to Education and Journey to Work, data for the **2018 and 2023 Census waves were downloaded simultaneously** to ensure consistent table structure and metadata alignment across years.
 
-Data were extracted at the SA2 level using the option *“Total – New Zealand by territorial authority and Auckland local board/SA2”*. For each territorial authority or city, all associated SA2 units were selected and downloaded as separate CSV files. This approach preserved the full national spatial coverage while allowing scalable ingestion and processing.
+Data were extracted at the SA2 level using the option *“Total - New Zealand by territorial authority and Auckland local board/SA2”*. For each territorial authority or city, all associated SA2 units were selected and downloaded as separate CSV files. This approach preserved the full national spatial coverage while allowing scalable ingestion and processing.
 
 Downloaded files were named using a consistent `<Region>_<District>` convention. Region and district identifiers were subsequently parsed from file names and added explicitly as variables during ingestion, ensuring traceability between source files and processed records.
 
@@ -186,19 +194,19 @@ Careful filter selection was applied during data extraction to ensure that all c
 
 For the Journey to Education dataset:
 
-* Under **Age**, the categories *“Total – age”* and *“Median – age”* were excluded. Broad age-group categories relevant to education participation were retained, while fine-grained sub-groups were excluded to avoid unnecessary fragmentation.
-* Under **Main means of travel to education**, the categories *“Total – main means of travel to education”*, *“Total stated – main means of travel to education”*, and *“Not elsewhere included”* were excluded.
-* Under **Gender**, the category *“Total – gender”* was retained alongside disaggregated gender categories to enable reconstruction of suppressed values during data preparation.
+* Under **Age**, the categories *“Total - age”* and *“Median - age”* were excluded. Broad age-group categories relevant to education participation were retained, while fine-grained sub-groups were excluded to avoid unnecessary fragmentation.
+* Under **Main means of travel to education**, the categories *“Total - main means of travel to education”*, *“Total stated - main means of travel to education”*, and *“Not elsewhere included”* were excluded.
+* Under **Gender**, the category *“Total - gender”* was retained alongside disaggregated gender categories to enable reconstruction of suppressed values during data preparation.
 
 #### Journey to Work dataset
 
 For the Journey to Work dataset:
 
 * Under **Census year**, the 2013 Census was excluded; only the 2018 and 2023 waves were retained.
-* Under **Total personal income**, only the aggregate *“Total – total personal income”* category was selected, with all income sub-categories excluded, as income was not used in subsequent analyses.
-* Under **Age**, the categories *“Total – age”* and *“Median – age”* were excluded.
-* Under **Main means of travel to work**, the categories *“Total – main means of travel”*, *“Total stated – main means of travel”*, and *“Not elsewhere included”* were excluded.
-* Under **Gender**, the *“Total – gender”* category was retained to support reconstruction of suppressed gender values.
+* Under **Total personal income**, only the aggregate *“Total - total personal income”* category was selected, with all income sub-categories excluded, as income was not used in subsequent analyses.
+* Under **Age**, the categories *“Total - age”* and *“Median - age”* were excluded.
+* Under **Main means of travel to work**, the categories *“Total - main means of travel”*, *“Total stated - main means of travel”*, and *“Not elsewhere included”* were excluded.
+* Under **Gender**, the *“Total - gender”* category was retained to support reconstruction of suppressed gender values.
 
 Across both datasets, total-level filter options were excluded wherever they would introduce duplicated aggregates. This ensured that summing across categories reproduced published totals exactly and avoided artificial inflation of counts.
 
@@ -222,15 +230,11 @@ Where structurally valid category combinations contained no recorded observation
 
 #### Handling of confidentiality and reconstruction of gender counts
 
-Statistics New Zealand applies confidentiality protection to Census tables through suppression and controlled perturbation, which can result in missing values at detailed disaggregation levels. In both datasets, a published **Total-gender** category is available within each Census grouping. This total was used as a constraint to reconstruct suppressed gender values where necessary, while preserving all published values.
+Statistics New Zealand applies confidentiality protection to Census tables through suppression and controlled perturbation, which can result in missing values at detailed disaggregation levels. In both datasets, a published **Total - gender** category is available within each Census grouping. This total was used as a constraint to reconstruct suppressed gender values where necessary, while preserving all published values.
 
-For the Journey to Education dataset, suppressed values in the “Another gender” category were reconstructed using the identity:
+For the Journey to Education dataset, suppressed values in the “Another gender” category were reconstructed using the identity $\text{Another} = \text{Total} - \text{Male} - \text{Female}$, applied within internally consistent groupings defined by Census year, SA2, travel mode, and age group. Reconstructed values were constrained to be non-negative to avoid artefacts arising from rounding or suppression. Following reconstruction, all Total - gender rows were removed to prevent duplication during aggregation.
 
-$\text{Another} = \text{Total} - \text{Male} - \text{Female},$
-
-applied within internally consistent groupings defined by Census year, SA2, travel mode, and age group. Reconstructed values were constrained to be non-negative to avoid artefacts arising from rounding or suppression. Following reconstruction, all Total-gender rows were removed to prevent duplication during aggregation.
-
-The Journey to Work dataset required a more selective approach, as confidentiality suppression may apply to specific gender categories while others remain published. Reconstruction was therefore restricted to the suppressed category only, using the published total and the remaining observed gender counts as constraints. Published values were retained unchanged wherever they were available. As with the education data, Total-gender rows were removed once reconstruction was complete.
+The Journey to Work dataset required a more selective approach, as confidentiality suppression may apply to specific gender categories while others remain published. Reconstruction was therefore restricted to the suppressed category only, using the published total and the remaining observed gender counts as constraints. Published values were retained unchanged wherever they were available. As with the education data, Total - gender rows were removed once reconstruction was complete.
 
 This targeted strategy ensures internal consistency with published totals while avoiding distortion of valid, released counts. Importantly, reconstruction was purely arithmetic and deterministic, relying solely on information already present in the Census tables.
 
@@ -275,7 +279,7 @@ As the analysis is based solely on aggregated Census counts, formal human ethics
 
 The datasets include population counts for Māori and non-Māori individuals as part of the national Census. In line with Stats NZ guidance and the principles of the *Māori Data Governance Model*, Māori data are analysed only in their published aggregate form. No inference is made at the level of individuals, whānau, hapū, or iwi, and no Māori-specific classifications are altered or redefined.
 
-Gender categories were originally provided using bilingual English–te reo Māori labels. For analytical clarity and consistency across datasets, these labels were standardised during preparation. This involved label harmonisation only and did not alter underlying published counts.
+Gender categories were originally provided using bilingual English-te reo Māori labels. For analytical clarity and consistency across datasets, these labels were standardised during preparation. This involved label harmonisation only and did not alter underlying published counts.
 
 
 
@@ -381,7 +385,7 @@ Together, these measures ensure that comparisons reflect **structural redistribu
 
 ## Statistical Inference: Tests of Homogeneity and Distributional Change
 
-While the descriptive measures in Section 2.2 quantify changes in travel-mode composition, formal statistical testing is required to determine whether observed differences represent meaningful distributional divergence. To evaluate homogeneity of categorical travel-mode distributions across time and journey types, Pearson’s Chi-square test is employed.
+While the descriptive measures in Section 3.2 quantify changes in travel-mode composition, formal statistical testing is required to determine whether observed differences represent meaningful distributional divergence. To evaluate homogeneity of categorical travel-mode distributions across time and journey types, Pearson’s Chi-square test is employed.
 
 The Chi-square test of homogeneity is appropriate when comparing whether two or more independent populations share the same categorical distribution. In this study, travel categories are mutually exclusive and collectively exhaustive, and Census counts provide observed frequencies for each category.
 
@@ -918,14 +922,14 @@ There is no evidence suggesting that the underlying model assumptions are violat
 
 ## Extensions to Regions and Sub-Populations
 
-While Sections 2.2-2.4 focus on national-level travel-mode composition and inferential comparison, structural change in travel behaviour may not be spatially uniform. Urban form, settlement density, transport infrastructure, and institutional arrangements vary considerably across New Zealand. To assess spatial heterogeneity, the analytical framework defined previously is extended to the regional and city level.
+While Sections 3.2-3.4 focus on national-level travel-mode composition and inferential comparison, structural change in travel behaviour may not be spatially uniform. Urban form, settlement density, transport infrastructure, and institutional arrangements vary considerably across New Zealand. To assess spatial heterogeneity, the analytical framework defined previously is extended to the regional and city level.
 
 This section applies the previously defined measures of mode share, percentage-point change, and difference-in-differences at finer geographic resolution. No new inferential model is introduced; rather, the national framework is implemented within regional partitions of the data.
 
 
 ### Region-Level Travel Mode Shares and Percentage-Point Change
 
-For each region $r$, journey type $j$, Census year $y$, and travel category $c$, regional mode shares are computed using the same formulation defined in Section 2.2.1, but restricting aggregation to region $r$.
+For each region $r$, journey type $j$, Census year $y$, and travel category $c$, regional mode shares are computed using the same formulation defined in Section 3.2.1, but restricting aggregation to region $r$.
 
 Thus, regional shares take the form:
 
@@ -935,7 +939,7 @@ $$
 
 where totals are summed over all SA2 units belonging to region $r$.
 
-Temporal change within each region and journey type is then measured using the percentage-point change formulation introduced in Section 2.2.2:
+Temporal change within each region and journey type is then measured using the percentage-point change formulation introduced in Section 3.2.2:
 
 $$
 \Delta_{r,j,c}
@@ -950,7 +954,7 @@ This produces a regional map of structural change, allowing identification of re
 
 ### Regional Difference-in-Differences
 
-To evaluate whether temporal shifts differ between Education and Work within a specific region, the difference-in-differences framework from Section 2.2.3 is applied at the regional level.
+To evaluate whether temporal shifts differ between Education and Work within a specific region, the difference-in-differences framework from Section 3.2.3 is applied at the regional level.
 
 For each region $r$ and category $c$:
 
@@ -994,192 +998,91 @@ where $G \in \{\text{Urban}, \text{Non-Urban}\}$.
 
 This weighting ensures that regions contribute proportionally according to their population size, preventing small regions from exerting disproportionate influence.
 
-Percentage-point changes and difference-in-differences at the group level are then computed using the same definitions provided in Sections 2.2.2 and 2.2.3.
+Percentage-point changes and difference-in-differences at the group level are then computed using the same definitions provided in Sections 3.2.2 and 3.2.3.
 
 
 ### City-Level Comparison
 
-To provide finer-grained insight within major urban areas, selected cities are analysed individually using the same regional framework described above.
+To provide finer-grained insight within selected metropolitan and regional centres, four representative territorial authorities were analysed separately: Wellington City and Christchurch City (metropolitan centres), and Gisborne District and Invercargill City (non-metropolitan centres). These locations were selected to contrast large urban labour-market hubs with smaller regional districts.
 
 For each city:
 
-* Mode shares are computed as in Section 2.2.1.
-* Percentage-point changes are computed as in Section 2.2.2.
-* Difference-in-differences is computed as in Section 2.2.3.
+* Mode shares are computed as in Section 3.2.1.
+* Percentage-point changes are computed as in Section 3.2.2.
+* Difference-in-differences is computed as in Section 3.2.3.
 
-This allows identification of whether large metropolitan areas exhibit stronger or weaker divergence between Education and Work travel over time.
+This extension enables comparison of whether modal redistribution differs between major metropolitan centres and smaller regional districts.
 
+### Age-Group Stratified Analysis
 
-### Analytical Positioning
-
-The regional and city-level extensions serve two purposes:
-
-1. To evaluate whether national-level findings are driven disproportionately by specific geographic contexts.
-2. To assess whether post-pandemic structural change is spatially concentrated or broadly distributed.
-
-These analyses remain descriptive and complement the inferential results presented in Sections 2.3 and 2.4. No additional model-based inference is introduced at the regional level.
-
-
-## Drivers of Change: Gender, Age Group, and Region
-
-While earlier sections establish whether travel-mode distributions changed over time and whether those changes differ between Education and Work journeys, they do not identify which demographic or geographic sub-populations contribute most strongly to those shifts. Structural change observed at the national level may arise from concentrated changes within particular groups (e.g., younger individuals or metropolitan residents), or from broad-based adjustments across the entire population.
-
-To investigate these patterns, the analytical framework is extended to stratified comparisons by gender, age group, and region. The objective is to determine whether observed temporal shifts are driven disproportionately by specific subgroups.
-
-The methodology below applies the same share-based and difference-in-differences framework introduced earlier, but within demographic and geographic partitions of the data.
-
-
-
-### Stratified Mode Shares
-
-To identify how travel behaviour differs across sub-populations, mode shares are computed separately within each subgroup. This allows comparison of distributional structure across gender, age groups, and regions.
-
-Let:
-
-* $s$ denote subgroup (gender, age group, or region),
-* $j \in \{\text{Education}, \text{Work}\}$ denote journey type,
-* $y \in \{2018, 2023\}$ denote Census year,
-* $c \in \{1, \dots, C\}$ denote travel category.
-
-Let:
+Travel behaviour may also vary systematically across life stages. To assess demographic heterogeneity, the analytical framework is extended to age-group stratified comparisons.
+The analysis focuses on broad Census age categories that are consistently defined across both Journey to Education and Journey to Work datasets. Because the Work dataset is restricted to individuals aged 15 years and over, difference-in-differences comparisons exclude the Under-15 cohort.
+For each age group $a$, journey type $j$, Census year $y$, and travel category $c$, age-specific mode shares are computed using the formulation defined in Section 3.2.1, restricting aggregation to age group ( a ):
 
 $$
-N_{s,j,y,c}
-$$
-
-denote the number of journeys in subgroup $s$, journey type $j$, Census year $y$, and category $c$.
-
-The total number of journeys within subgroup $s$ is:
-
-$$
-N_{s,j,y}
+S_{a,j,y,c}
 =
-\sum_{c=1}^{C} N_{s,j,y,c}
-$$
-
-The subgroup-specific mode share is defined as:
-
-$$
-S_{s,j,y,c}
-=
-\frac{N_{s,j,y,c}}{N_{s,j,y}}
-$$
-
-This quantity represents the proportion of journeys in subgroup $s$ that fall within travel category $c$ for a given journey type and year.
-
-By computing these shares separately for each subgroup, differences in travel behaviour across demographic and regional segments can be directly observed.
-
-
-
-### Subgroup-Specific Percentage-Point Change
-
-To evaluate how travel behaviour evolved within each subgroup, temporal change is measured using percentage-point differences between Census waves.
-
-For each subgroup $s$, journey type $j$, and category $c$, the change between 2018 and 2023 is defined as:
-
-$$
-\Delta_{s,j,c}
-=
-S_{s,j,2023,c}
--
-S_{s,j,2018,c}
-$$
-
-This measure quantifies how the distribution of travel modes shifted within subgroup $s$ over time.
-
-Because this is expressed in percentage points, it directly reflects changes in composition rather than relative growth rates. This makes interpretation straightforward when comparing across subgroups.
-
-
-### Subgroup Difference-in-Differences
-
-To determine whether temporal shifts differ between Education and Work within a specific subgroup, a difference-in-differences measure is computed at the subgroup level.
-
-For each subgroup $s$ and travel category $c$:
-
-$$
-DiD_{s,c}
-=
-\Delta_{s,\text{Education},c}
--
-\Delta_{s,\text{Work},c}
-$$
-
-This statistic measures whether the magnitude of change between 2018 and 2023 differs across journey types within subgroup $s$.
-
-* $DiD_{s,c} = 0$ indicates identical shifts,
-* $DiD_{s,c} > 0$ indicates a larger change in Education,
-* $DiD_{s,c} < 0$ indicates a larger change in Work.
-
-This framework isolates subgroup-specific divergence between journey contexts.
-
-
-### Contribution to Aggregate Change
-
-Aggregate national shifts may arise from two distinct mechanisms:
-
-1. Changes within subgroups (behavioural shifts), and
-2. Changes in subgroup composition (population weighting effects).
-
-To distinguish these components, subgroup weights are defined.
-
-Let:
-
-$$
-w_{s,j,y}
-=
-\frac{N_{s,j,y}}{N_{j,y}}
+\frac{
+N_{a,j,y,c}
+}{
+N_{a,j,y}
+}
 $$
 
 where:
 
 $$
-N_{j,y}
+N_{a,j,y}
 =
-\sum_{s} N_{s,j,y}
+\sum_{c=1}^{C}
+N_{a,j,y,c}.
 $$
 
-represents the total number of journeys for journey type $j$ and year $y$.
-
-National shares can therefore be expressed as a weighted average of subgroup shares:
+Temporal change within each age group and journey type is measured using the percentage-point definition introduced in Section 3.2.2:
 
 $$
-S_{j,y,c}
+\Delta_{a,j,c}
 =
-\sum_{s} w_{s,j,y} \, S_{s,j,y,c}
+S_{a,j,2023,c}
+-
+S_{a,j,2018,c}.
 $$
 
-This representation clarifies that national-level change reflects both within-group shifts and differences in subgroup weights.
+To evaluate whether temporal shifts differ between Education and Work within a given age group, the difference-in-differences framework defined in Section 3.2.3 is applied at the age-group level:
 
-Although a full Oaxaca–Blinder decomposition is not performed, this weighted formulation provides conceptual insight into how subgroup dynamics contribute to aggregate structural change.
+$$
+DiD_{a,c}
+=
+\Delta_{a,\text{Education},c}
+-
+\Delta_{a,\text{Work},c}.
+$$
 
+These age-specific quantities are descriptive extensions of the national framework and allow assessment of whether modal restructuring is uniformly distributed across cohorts or concentrated within specific age groups.
 
+### Analytical Positioning
 
-### Analytical Scope and Interpretation
+The regional, urban–non-urban, city-level, and age-group extensions serve to assess spatial and demographic heterogeneity in modal redistribution patterns. These analyses complement the national-level inferential results presented earlier but do not introduce additional model-based inference.
 
-The driver analysis is conducted separately for:
-
-* Gender categories (Male, Female, Other),
-* Broad age groups,
-* Regional groupings.
-
-The purpose of this analysis is descriptive attribution rather than formal hypothesis testing. The results identify which demographic and geographic segments account for the largest changes in travel-mode composition and whether divergence between Education and Work journeys is concentrated within specific sub-populations.
-
-
+Together, they provide a structured decomposition of how Education and Work travel evolved across geographic contexts and life-stage cohorts in the post-pandemic period.
 
 
 ### Software and Reproducibility
 
-All statistical analyses were conducted in **R (version 4.4.3)** within the RStudio environment. Core packages used in the analysis included *dplyr*, *tidyr*, *ggplot2*, *readr*, *purrr*, *broom*, *knitr*, and *kableExtra* for data manipulation, statistical testing, and table/figure generation.
+All statistical analyses were conducted in R (version 4.4.3) within the RStudio environment. Core packages used in the analysis included dplyr, tidyr, ggplot2, readr, purrr, broom, knitr, and kableExtra for data manipulation, statistical testing, and the programmatic generation of tables and figures.
 
-The analytical workflow was implemented through a fully scripted and deterministic R Markdown pipeline, ensuring reproducibility of all reported tables and figures directly from the cleaned dataset. No manual post-processing was applied to statistical outputs.
+The analytical workflow was implemented through a fully scripted and deterministic R Markdown pipeline, ensuring that all reported tables, statistical tests, and visualisations are reproducible directly from the cleaned dataset. No manual post-processing was applied to statistical outputs.
 
-All code used for data preparation, statistical analysis, and visualization is maintained in an internal version-controlled repository and is available upon reasonable request.
+Interactive visualisations and dashboard summaries were additionally developed using Microsoft Power BI Desktop. Custom DAX measures were implemented to compute dynamic mode shares, percentage-point changes, and Education-Work gaps for exploratory analysis and presentation purposes. The Power BI project file (.pbix), containing all report pages, calculated measures, and visual configurations, is included in the project repository.
 
+The complete reproducible analysis pipeline-including data preparation scripts, statistical modelling code, table and figure generation files, and the Power BI dashboard file, which is publicly available in a version-controlled repository at: https://github.com/tanveer09/move-nz
+
+The repository contains the full R Markdown workflow and supporting documentation required to replicate all results reported in this study.
 
 
 # Results
 
-This section presents the empirical findings corresponding to the analytical framework defined in Sections 2.2–2.6. Results are structured to mirror the methodological sequence, beginning with national-level travel-mode composition and percentage-point changes, followed by formal statistical inference, multinomial interaction modelling, regional extensions, and subgroup driver analysis.
+This section presents the empirical findings corresponding to the analytical framework defined in Sections 3.2-3.5. Results are structured to mirror the methodological sequence, beginning with national-level travel-mode composition and percentage-point changes, followed by formal statistical inference, multinomial interaction modelling, regional extensions, and subgroup driver analysis.
 
 All reported quantities are derived from aggregated Census population counts for 2018 and 2023. Descriptive results are presented using mode shares and percentage-point changes, while inferential findings include Chi-square tests of homogeneity, effect size measures, and likelihood-based model comparisons. Predicted probabilities from the multinomial model are used to facilitate interpretation in percentage-point space.
 
@@ -1211,13 +1114,13 @@ knitr::include_graphics("../../figures/edu_work_mode_share.png")
 
 
 
-### Percentage-Point Change (2018–2023)
+### Percentage-Point Change (2018-2023)
 
 To quantify structural change over time, percentage-point differences between 2018 and 2023 are examined for each travel category within each journey type.
 
 The most pronounced change for both Education and Work is the increase in the “At home” category. This increase represents a structural redistribution in travel behaviour rather than a marginal fluctuation. Public Transport exhibits a clear decline across both journey types, indicating contraction relative to pre-2018 levels.
 
-Private Transport shows more nuanced behaviour. While it remains the dominant mode for Work, its change over time is comparatively smaller than that observed for “At home.” Active Transport demonstrates relatively modest percentage-point variation compared to the larger shifts in remote or home-based activity.
+Private Transport shows more nuanced behaviour. While it remains the dominant mode for Work, its change over time is comparatively smaller than that observed for “At Home.” Active Transport demonstrates relatively modest percentage-point variation compared to the larger shifts in remote or home-based activity.
 
 Although the directional patterns of change are similar across Education and Work, the magnitude of percentage-point shifts differs across categories. This motivates the comparative analysis presented next.
 
@@ -1236,7 +1139,7 @@ knitr::include_graphics("../../figures/edu_work_pp_change.png")
 
 To determine whether Education and Work evolved differently over time, difference-in-differences estimates are examined at the category level.
 
-The DiD results indicate that while both journey types experienced increases in “At home,” the magnitude of change differs between them. Similarly, reductions in Public Transport and adjustments in Private and Active Transport vary in strength between Education and Work.
+The DiD results indicate that while both journey types experienced increases in “At Home,” the magnitude of change differs between them. Similarly, reductions in Public Transport and adjustments in Private and Active Transport vary in strength between Education and Work.
 
 Categories with DiD values near zero suggest parallel structural shifts across journey types, whereas larger positive or negative DiD values indicate differential evolution. These findings suggest that although the broad direction of change is similar, the structural reallocation of travel modes is not identical between Education and Work contexts.
 
@@ -1256,7 +1159,7 @@ knitr::include_graphics("../../figures/edu_work_mode_share_gap.png")
 
 ## Statistical Inference: Distributional Comparisons Across Years and Journey Types
 
-Section 3.1 established descriptive differences in travel-mode composition across Census years and journey types. This section formalises those observations using Pearson’s chi-square tests to evaluate whether observed differences represent statistically detectable distributional divergence. Given the extremely large national Census counts, statistical significance is interpreted alongside effect size (Cramér’s V) to distinguish detectability from substantive magnitude.
+Section 4.1 established descriptive differences in travel-mode composition across Census years and journey types. This section formalises those observations using Pearson’s chi-square tests to evaluate whether observed differences represent statistically detectable distributional divergence. Given the extremely large national Census counts, statistical significance is interpreted alongside effect size (Cramér’s V) to distinguish detectability from substantive magnitude.
 
 ### Time-Based Change Within Education (2018 vs 2023)
 
@@ -1320,7 +1223,7 @@ The estimated values are 0.3261 for 2018 and 0.3339 for 2023, indicating a moder
 
 
 
-### Differential Change Between Journey Types (2018–2023)
+### Differential Change Between Journey Types (2018-2023)
 
 **Is there statistically significant evidence that the change in travel-mode distributions between 2018 and 2023 differed between Education and Work journeys?**
 
@@ -1342,7 +1245,9 @@ Collectively, the chi-square analyses establish three consistent findings. First
 
 ## Multinomial Model: Differential Time-Based Change Between Education and Work
 
-While Section 3.2 established statistically significant distributional differences using contingency-table methods, this section provides a unified regression-based assessment of whether the 2018–2023 shifts differ systematically between Education and Work journeys.
+To complement the contingency-table analyses presented in Section 4.2, a multinomial logistic regression model with a $Year × Journey Type$ interaction was estimated, as described in Section 3.4.
+
+While Section 4.2 established statistically significant distributional differences using contingency-table methods, this section provides a unified regression-based assessment of whether the 2018-2023 shifts differ systematically between Education and Work journeys.
 
 A multinomial logistic regression model was estimated with travel category as the outcome and Census year, journey type, and their interaction as predictors. The key inferential focus is the Year × Journey Type interaction, which tests whether the temporal effect of Census year differs across journey purposes.
 
@@ -1399,7 +1304,7 @@ This confirms that the interaction detected by the likelihood ratio test reflect
 
 ### Interpretation and Synthesis
 
-The multinomial modelling results reinforce and extend the contingency-table findings in Section 3.2. The significant interaction $(\chi^2(4) = 1320, p < 0.001)$ confirms that the 2018–2023 shift in travel-mode distribution differs between Education and Work when all travel categories are considered jointly.
+The multinomial modelling results reinforce and extend the contingency-table findings in Section 4.2. The significant interaction $(\chi^2(4) = 1320, p < 0.001)$ confirms that the 2018-2023 shift in travel-mode distribution differs between Education and Work when all travel categories are considered jointly.
 
 Importantly, the predicted probability contrasts reveal the substantive structure of this interaction: Work journeys experienced a substantially larger shift toward at-home participation and a notable decline in private transport, whereas Education journeys underwent more moderate adjustments.
 
@@ -1421,7 +1326,7 @@ All analyses are descriptive and based on Census population counts.
 
 To assess whether travel-mode distributions changed within each region between the 2018 and 2023 Censuses, Pearson Chi-square tests of homogeneity were conducted separately for Journey to Education and Journey to Work.
 
-**Table below** reports the region-specific Chi-square statistics, degrees of freedom, and associated p-values for both journey purposes.
+**Table 15** below reports the region-specific Chi-square statistics, degrees of freedom, and associated p-values for both journey purposes.
 
 ```{r include=TRUE, ref.label="region-wise_pearson_chi-square_tests"}
 ```
@@ -1439,7 +1344,7 @@ These results confirm that modal change occurred across all regions and for both
 
 ### Region-Level Percentage-Point Change
 
-To quantify the magnitude and direction of change, percentage-point (pp) differences in mode share between 2018 and 2023 were computed for each region and journey type. Full results are reported in **Tables A1 (Education) and A2 (Work) in the Appendix**.
+To quantify the magnitude and direction of change, percentage-point (pp) differences in mode share between 2018 and 2023 were computed for each region and journey type. Full results are reported in **Table A1 (Education) and Table A2 (Work) in the Appendix**.
 
 Across regions, at-home participation increased for both journey types, with consistently larger gains observed for Work. The strongest increases are concentrated in major metropolitan regions, including Wellington and Auckland.
 
@@ -1456,9 +1361,9 @@ To quantify divergence between Education and Work within each region, regional d
 
 $$DiD = (\Delta Education) - (\Delta Work)$$
 
-where $\Delta$ denotes the 2018–2023 percentage-point change.
+where $\Delta$ denotes the 2018-2023 percentage-point change.
 
-Regional DiD results are reported in **Table A5 in the Appendix**.
+Regional DiD results are reported in **Table A7 in the Appendix**.
 
 
 Positive DiD values indicate that the increase (or reduction) in mode share was larger for Education than for Work, while negative values indicate stronger change for Work.
@@ -1481,24 +1386,22 @@ To assess whether settlement structure moderates modal redistribution, five majo
 
 \clearpage
 
-```{r fig-urban-non_urban-more-share, echo=FALSE, fig.cap="Mode Share by Travel Category – Top 5 Urban and Non-Urban Regions (2018 vs 2023)", fig.align='center', out.width="1.0\\linewidth", fig.pos='H'}
+```{r fig-urban-non_urban-more-share, echo=FALSE, fig.cap="Mode Share by Travel Category - Top 5 Urban and Non-Urban Regions (2018 vs 2023)", fig.align='center', out.width="1.0\\linewidth", fig.pos='H'}
 knitr::include_graphics("../../figures/urban_non-urban_mode_share.png")
 ```
 
-The 2018–2023 comparison reveals clear structural contrasts.
+The 2018-2023 comparison reveals clear structural contrasts.
 
 In **Urban regions**, Work travel remains heavily concentrated in Private transport (over 68% in 2023), but shows a visible shift toward At-Home participation (10.13% to 17.91%). Education displays smaller changes, with modest increases in At-Home participation and relatively stable Private transport shares.
 
 In **Non-Urban regions**, Private transport dominates both journey types in both years (exceeding 73% for Work in 2023). Changes between 2018 and 2023 are comparatively muted, particularly for Work, indicating greater modal stability outside metropolitan contexts.
 
-These patterns suggest that urban areas experienced more substantial redistribution in modal composition, especially for Work travel.
-
+Urban regions exhibited larger positive percentage-point changes in at-home travel for both Education and Work journeys relative to non-urban regions. In contrast, non-urban regions showed comparatively smaller increases in at-home travel and continued higher reliance on private transport modes.
 
 #### Net Percentage-Point Changes (Urban vs Non-Urban)
 
-\clearpage
 
-```{r fig-urban-non_urban-pp-change, echo=FALSE, fig.cap="Net Change in Mode Share – Urban and Non-Urban Regions", fig.align='center', out.width="1.0\\linewidth", fig.pos='H'}
+```{r fig-urban-non_urban-pp-change, echo=FALSE, fig.cap="Net Change in Mode Share - Urban and Non-Urban Regions", fig.align='center', out.width="1.0\\linewidth", fig.pos='H'}
 knitr::include_graphics("../../figures/urban_non-urban_pp_change.png")
 ```
 
@@ -1528,11 +1431,11 @@ In Non-Urban areas:
 Thus, metropolitan regions exhibit stronger behavioural adjustment, particularly in commuting-related modes.
 
 
-#### Difference-in-Differences: Education–Work Divergence
+#### Difference-in-Differences: Education-Work Divergence
 
 \clearpage
 
-```{r fig-urban_non-urban_did, echo=FALSE, fig.cap="Change in Education-Work Mode Share Gap – Urban and Non-Urban Regions", fig.align='center', out.width="1.0\\linewidth", fig.pos='H'}
+```{r fig-urban_non-urban_did, echo=FALSE, fig.cap="Change in Education-Work Mode Share Gap - Urban and Non-Urban Regions", fig.align='center', out.width="1.0\\linewidth", fig.pos='H'}
 knitr::include_graphics("../../figures/urban_non-urban_did.png")
 ```
 
@@ -1556,14 +1459,14 @@ In Non-Urban regions:
 * *At-Home* shows a positive DiD (+2.10 pp), indicating relatively stronger Education growth in remote participation compared with Work.
 * Other categories display limited divergence.
 
-Overall, the Education–Work gap widens more strongly in metropolitan settings.
+Overall, the Education-Work gap widens more strongly in metropolitan settings.
 
 
 
 #### Region-Specific Patterns
 
 
-```{r fig-urban_non-urban_regional_change, echo=FALSE, fig.cap="Regional Change in Education–Work Mode Share Gap – Heatmap (Urban and Non-Urban)", fig.align='center', out.width="1.0\\linewidth", fig.pos='H'}
+```{r fig-urban_non-urban_regional_change, echo=FALSE, fig.cap="Regional Change in Education-Work Mode Share Gap - Heatmap (Urban and Non-Urban)", fig.align='center', out.width="1.0\\linewidth", fig.pos='H'}
 knitr::include_graphics("../../figures/urban_non-urban_regional_change.png")
 ```
 
@@ -1587,7 +1490,7 @@ These results indicate that even within classifications, local labour-market str
 Across all analyses, three consistent conclusions emerge:
 
 1. **Urban regions experienced substantially stronger modal redistribution**, particularly in Work travel.
-2. **Remote participation expanded most sharply in metropolitan labour-market centres**, widening the Education–Work gap.
+2. **Remote participation expanded most sharply in metropolitan labour-market centres**, widening the Education-Work gap.
 3. **Non-Urban regions exhibit greater modal stability**, with smaller difference-in-differences magnitudes and more aligned shifts across journey types.
 
 Settlement structure therefore plays a central moderating role in post-2018 travel behaviour change, with metropolitan regions driving the majority of structural divergence between Education and Work journeys.
@@ -1596,9 +1499,9 @@ Settlement structure therefore plays a central moderating role in post-2018 trav
 
 ### City-Level Comparison
 
-To further examine spatial heterogeneity, four representative districts/cities were selected for focused analysis: two metropolitan centres (Wellington City and Christchurch City) and two non-metropolitan centres (Gisborne District and Invercargill City). These locations were chosen to contrast large urban labour-market hubs with smaller regional centres.
+To further examine spatial heterogeneity, four representative territorial authorities were selected for focused analysis: two metropolitan centres (Wellington City and Christchurch City) and two non-metropolitan centres (Gisborne District and Invercargill City). These locations were chosen to contrast large urban labour-market hubs with smaller regional centres and to assess how travel-mode redistribution varied at a finer spatial scale beyond regional aggregation.
 
-Percentage-point changes in travel mode shares (2018–2023) are reported in **Table A3 in the Appendix**, and the corresponding difference-in-differences (Education – Work) estimates are presented in **Table A4 (Appendix)**.
+Percentage-point changes in travel mode shares (2018-2023) are reported in **Table A3 in the Appendix**, and the corresponding difference-in-differences (Education - Work) estimates are presented in **Table A4 (Appendix)**.
 
 **Percentage-Point Changes**
 
@@ -1612,7 +1515,7 @@ Among non-metropolitan centres, **Gisborne District** displays strong reductions
 
 In **Invercargill City**, modal adjustments are modest overall. Education Active transport declines (−3.89 pp), while At-Home participation increases moderately for both journey types (+2.70 pp for Education; +0.59 pp for Work). Private transport remains largely stable.
 
-**Difference-in-Differences (Education – Work)**
+**Difference-in-Differences (Education - Work)**
 
 Difference-in-differences estimates in **Table A4** formalise these contrasts.
 
@@ -1636,9 +1539,9 @@ These results confirm that behavioural change is not only regionally differentia
 
 ### Change by Age Group (Education vs Work)
 
-This subsection examines age-specific differences in modal restructuring between 2018 and 2023. We first describe mode shares, followed by net percentage-point changes, and finally Education–Work divergence (difference-in-differences).
+This subsection examines age-specific differences in modal restructuring between 2018 and 2023. We first describe mode shares, followed by net percentage-point changes, and finally Education-Work divergence (difference-in-differences).
 
-
+The Under-15 age group is included for Education journeys but is structurally excluded from Work journey comparisons, as work-related travel is not defined for this cohort in the Census data. Consequently, difference-in-differences estimates are reported only for the 15-29, 30-64, and Over 64 age groups.
 
 #### Mode Shares by Age Group
 
@@ -1649,14 +1552,14 @@ knitr::include_graphics("../../figures/age_group_mode_share.png")
 ```
 
 
-Modal structure varies systematically by age.
+Modal structure varies systematically by age. Private transport remains the dominant mode across most age groups in both journey types, particularly among working-age adults.
 
-For **Education**, younger groups show higher shares of Active and Public transport, whereas older cohorts rely more heavily on Private transport. By 2023, At-Home participation increases across all adult groups, particularly among 30–64 and Over-64 individuals.
+For **Education**, younger groups show higher shares of Active and Public transport, whereas older cohorts rely more heavily on Private transport. By 2023, At-Home participation increases across all adult groups, particularly among 30-64 and Over-64 individuals.
 
-For **Work**, Private transport remains dominant in both years. However, At-Home participation rises noticeably by 2023, especially among 30–64 and Over-64 workers.
+For **Work**, Private transport remains dominant in both years. However, At-Home participation rises noticeably by 2023, especially among 30-64 and Over-64 workers.
 
 
-#### Net Change in Mode Share (2018–2023)
+#### Net Change in Mode Share (2018-2023)
 
 Percentage-point changes in mode shares by age group are reported in **Table A5 in the Appendix** and visualised in Figure Z and Figure AA.
 
@@ -1668,18 +1571,18 @@ knitr::include_graphics("../../figures/age_group_pp_change.png")
 
 Change is concentrated among adult cohorts:
 
-* **30–64 years**: At-Home increases sharply (+14.04 pp), with declines in Private (−8.38 pp), Public (−2.80 pp), and Active transport (−2.50 pp).
+* **30-64 years**: At-Home increases sharply (+14.04 pp), with declines in Private (−8.38 pp), Public (−2.80 pp), and Active transport (−2.50 pp).
 * **Over 64 years**: At-Home rises (+13.79 pp) and Private transport declines markedly (−9.84 pp).
-* **15–29 years**: Moderate At-Home growth (+3.73 pp) with small reductions in Active and Public modes.
+* **15-29 years**: Moderate At-Home growth (+3.73 pp) with small reductions in Active and Public modes.
 * **Under 15 years**: Minimal change.
 
 **Work**
 
 Work exhibits similar directional shifts but smaller magnitudes:
 
-* **30–64 years**: At-Home increases (+7.69 pp), Private transport declines (−5.14 pp).
+* **30-64 years**: At-Home increases (+7.69 pp), Private transport declines (−5.14 pp).
 * **Over 64 years**: At-Home rises (+4.69 pp), Private transport declines (−3.12 pp).
-* **15–29 years**: Moderate At-Home growth (+3.48 pp) with minor reductions elsewhere.
+* **15-29 years**: Moderate At-Home growth (+3.48 pp) with minor reductions elsewhere.
 
 
 
@@ -1694,10 +1597,10 @@ knitr::include_graphics("../../figures/age_group_did.png")
 
 Difference-in-differences estimates show that divergence increases with age:
 
-* **30–64 years**: At-Home gap widens (+6.35 pp), indicating stronger Education growth relative to Work.
+* **30-64 years**: At-Home gap widens (+6.35 pp), indicating stronger Education growth relative to Work.
 * **Over 64 years**: The largest divergence is observed (+9.10 pp for At-Home).
 * Private transport declines more strongly in Education among older cohorts (−6.73 pp for Over 64).
-* **15–29 years**: Differences remain small (|DiD| < 1 pp), suggesting largely parallel change.
+* **15-29 years**: Differences remain small (|DiD| < 1 pp), suggesting largely parallel change.
 
 
 
@@ -1705,12 +1608,60 @@ Difference-in-differences estimates show that divergence increases with age:
 
 Behavioural restructuring is strongly age-conditioned.
 
-The largest shifts occur among **30–64 and Over-64 cohorts**, where At-Home participation expands and Private transport contracts. Education exhibits stronger remote participation growth than Work among older adults, producing widening Education–Work gaps. Younger cohorts show comparatively stable and parallel modal change.
+The largest shifts occur among **30-64 and Over-64 cohorts**, where At-Home participation expands and Private transport contracts. Education exhibits stronger percentage-point growth in at-home participation than Work among older adults, producing widening Education-Work gaps.
 
 
+# Discussion
+
+The objective of this study was to assess whether travel-mode distributions in New Zealand changed between Census 2018 and Census 2023, and whether those temporal shifts differed systematically between Education and Work journeys. Using a structured framework combining mode-share analysis, percentage-point change measurement, difference-in-differences comparison, distributional testing, and multinomial logistic modelling, the findings demonstrate clear evidence of structural modal redistribution over the post-pandemic period, with important variation across geography and age groups.
+
+At the national level, both Education and Work journeys exhibit statistically significant changes in travel-mode composition between 2018 and 2023. However, the magnitude and pattern of these shifts differ across journey types. The most pronounced structural change occurs in the growth of *At Home* participation, particularly for Work journeys. The multinomial interaction model confirms that the temporal effect of Census year differs significantly between Education and Work journeys, providing formal statistical support for differential post-pandemic adjustment.
+
+While both journey types experienced an expansion in remote participation, the increase is substantially larger for Work. This divergence suggests that structural remote working arrangements have persisted beyond the immediate pandemic period, whereas Education travel exhibits a comparatively smaller shift toward remote participation. The interaction effects estimated within the multinomial framework reinforce the conclusion that temporal change is not uniform across journey contexts.
+
+The regional and sub-population extensions further clarify how national-level restructuring is spatially and demographically distributed. Metropolitan regions exhibit larger increases in *At Home* participation and sharper contractions in Private transport use relative to non-urban regions. This pattern is particularly pronounced for Work journeys, indicating that remote working capacity and modal substitution are more feasible in large urban labour markets. In contrast, non-urban regions display greater modal stability and continued reliance on Private transport, reflecting structural constraints in transport infrastructure and occupational composition.
+
+City-level comparisons reinforce this spatial heterogeneity. Larger metropolitan centres demonstrate stronger modal redistribution, while smaller regional centres show comparatively muted change. These findings indicate that aggregate national trends are not geographically uniform but instead reflect concentrated behavioural shifts within specific spatial contexts.
+
+Age-group analysis reveals that modal restructuring is also strongly life-stage dependent. The largest changes occur among the 30-64 and Over-64 cohorts, where *At Home* participation increases sharply and Private transport declines substantially. Younger cohorts display more moderate and parallel changes between Education and Work journeys. The widening Education-Work divergence among older adults suggests that remote working arrangements are disproportionately concentrated among prime-age and older workers, whereas education-related travel among younger populations remains more dependent on physical attendance.
+
+Taken together, the results suggest that the post-2018 evolution of travel behaviour in New Zealand reflects a structural reconfiguration of commuting patterns rather than a temporary disruption. The persistence of remote work, particularly in metropolitan regions and among working-age adults, implies enduring implications for peak-hour congestion, transport investment planning, and public transport demand modelling.
+
+The integration of multinomial modelling with descriptive extensions strengthens the interpretation of these findings. The regression framework provides a unified inferential test of interaction effects, while predicted probabilities translate statistical results into interpretable modal share differences. The complementary stratified analyses demonstrate how aggregate change emerges from heterogeneous demographic and spatial processes.
 
 
+## Limitations
 
+Several limitations should be acknowledged when interpreting these findings.
+
+First, the analysis relies on aggregated Census tabulations rather than individual-level microdata. While the multinomial count formulation is statistically appropriate for grouped outcomes, it precludes adjustment for additional covariates such as income, occupation, household structure, or car ownership. As a result, the observed shifts represent distributional change across populations rather than causal behavioural responses at the individual level.
+
+Second, Census data capture the *main* means of travel on Census day rather than habitual multi-modal behaviour. Hybrid commuting patterns or occasional travel modes may therefore be underrepresented. In particular, the rapid adoption of hybrid work arrangements may not be fully reflected in a single-day snapshot.
+
+Third, the urban versus non-urban grouping is necessarily a simplification. Although designed to contrast metropolitan and non-metropolitan contexts, regional classification cannot fully capture within-region heterogeneity or finer-grained local transport dynamics.
+
+Fourth, A further limitation arises from the structure of the publicly available Census tabulations. The dataset does not provide linked information on residential location and specific workplace or educational institution addresses, nor does it include trip distance or travel time. As a result, the analysis cannot assess how spatial separation between origin and destination influences modal choice or remote participation.
+
+Fifth, attempts were made to incorporate additional contextual datasets, including the Equity Index, Deprivation Index, and urban–rural classification layers. However, mismatched spatial resolutions (e.g., meshblock versus SA2), lack of one-to-one correspondence, and missing data limited their suitability for integration within the project scope. The inability to incorporate these contextual variables restricts assessment of socioeconomic and fine-grained spatial drivers of modal change.
+
+Sixth, the analysis spans only two Census waves. Although the 2018-2023 comparison is uniquely informative due to the pandemic context, longer-term trend analysis would require additional temporal observations to distinguish cyclical variation from structural transition.
+
+Finally, the study focuses exclusively on Education and Work journeys. Other travel purposes, such as shopping or recreational travel, may exhibit different patterns of modal adjustment and are not examined here.
+
+Despite these limitations, the combination of large-scale national Census data, formal interaction modelling, and systematic stratified extensions provides a robust descriptive and inferential account of post-pandemic modal restructuring in New Zealand.
+
+
+## Conclusion and Future Work
+
+This study provides comprehensive evidence that travel-mode distributions in New Zealand changed significantly between 2018 and 2023 and that these changes differ systematically between Education and Work journeys. The staged analytical design, progressing from share-based composition analysis to contingency-table testing and finally to multinomial interaction modelling, ensures that both descriptive magnitude and formal statistical interaction are evaluated. Collectively, the inferential framework establishes not only that modal distributions evolved over time, but that the magnitude and direction of change differ structurally between Education and Work journeys. The multinomial interaction model confirms that temporal shifts are not homogeneous across journey types. In particular, Work journeys exhibit substantially stronger growth in *At Home* participation relative to Education journeys.
+
+Regional and demographic extensions reveal that these changes are unevenly distributed. Metropolitan regions and working-age adults account for a disproportionate share of modal restructuring, while non-urban regions and younger cohorts display comparatively greater stability. The Education-Work gap widens most strongly in urban labour markets and among older age groups, indicating that remote work adoption is more strongly concentrated within specific spatial and life-stage segments of the population.
+
+These findings carry important implications for transport policy and planning. Persistent reductions in physical commuting may alter long-term demand forecasts for public transport and road infrastructure. At the same time, education-related travel remains comparatively more anchored to physical attendance, suggesting that transport strategies must differentiate between journey purposes rather than treating them as behaviourally equivalent.
+
+Future research could extend this analysis in several directions. First, incorporating additional Census waves would allow assessment of whether observed changes represent permanent structural shifts or medium-term adjustment. Second, microdata-based modelling could examine how occupation, income, household structure, and vehicle access mediate modal transition. Third, spatial econometric approaches could explore finer-grained geographic variation below the regional level. Finally, behavioural choice models could be developed to test substitution patterns among travel modes more explicitly.
+
+In summary, the post-pandemic period has reshaped the relationship between work, education, and mobility in New Zealand. The persistence and uneven distribution of modal change underscore the importance of journey-specific and context-sensitive transport policy in an evolving mobility landscape.
 
 
 # References
@@ -2186,11 +2137,23 @@ val_years_by_category <- edu_work_data %>%
     .groups = "drop"
   )
 
-pander(
-  val_years_by_category,
-  caption = "Structural validation of harmonised travel categories across journey types and Census years in the merged analytical dataset"
-)
-
+val_years_by_category %>%
+  rename(
+    `Journey Type` = journey_type,
+    `Travel Category` = travel_category,
+    `Census Years Represented` = Census_Years_Represented
+  ) %>%
+  knitr::kable(
+    format    = "latex",
+    booktabs  = TRUE,
+    longtable = TRUE,
+    caption   = "Structural validation of harmonised travel categories across journey types and Census years in the merged analytical dataset",
+    escape    = FALSE
+  ) %>%
+  kableExtra::kable_styling(
+    latex_options = c("repeat_header", "hold_position"),
+    font_size = 9
+  )
 
 ```
 
