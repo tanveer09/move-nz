@@ -5,7 +5,7 @@ A comparative analysis of New Zealand Census **Journey to Education** and **Jour
 **Author:** Tanveer Singh  
 **Institution:** Victoria University of Wellington  
 **Industry Partner:** NZ Transport Agency Waka Kotahi (NZTA)  
-**Project:** Master of Data Science Research  
+**Project:** Master of Data Science Research Project
 
 ---
 
@@ -315,6 +315,7 @@ No reuse, modification or redistribution is permitted without explicit written p
 ## Contact
 
 **Tanveer Singh**  
-Master of Data Science  
-Victoria University of Wellington  
+Master of Data Science, Victoria University of Wellington  
 New Zealand
+
+**LinkedIn:** [linkedin.com/in/-tanveer-singh](https://www.linkedin.com/in/-tanveer-singh/)
